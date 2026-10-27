@@ -10,7 +10,7 @@ import levelMapUrl from "../../assets/maps/level_01.json?url";
 
 const TILE = 54;
 const MAP_SCALE = 3;
-const KENNEY = { grass: 0, dirt: 40, cactus: 127, coin: 151, checkpoint: 64, portal: 130, slime: 0, patroller: 6 };
+const KENNEY = { grass: 0, dirt: 40, cactus: 127, coin: 151, portal: 130, slime: 0, patroller: 6 };
 
 export class ForestScene extends Phaser.Scene {
   constructor() { super("forest"); }
@@ -26,18 +26,30 @@ export class ForestScene extends Phaser.Scene {
   create() {
     const requested = new URLSearchParams(window.location.search).get("character"); if (requested === "dudu") { window.location.replace("/?notice=dudu"); return; } this.character = "bubu"; saveSelectedCharacter(this.character);
     this.map = this.make.tilemap({ key: "level01" }); this.tileset = this.map.addTilesetImage("kenney_pixel_platformer", "kenneyTiles", 18, 18, 0, 0); this.level = { id: "level1", width: this.map.width * TILE, height: this.map.height * TILE };
-    this.physics.world.setBounds(0, 0, this.level.width, this.level.height); this.cameras.main.setBounds(0, 0, this.level.width, this.level.height).setBackgroundColor("#a7e8f2"); this.createScenery();
+    this.deathY = this.level.height + 150;
+    this.physics.world.setBounds(0, -220, this.level.width, this.deathY + 240);
+    this.cameras.main.setBounds(0, 0, this.level.width, this.level.height).setBackgroundColor("#a7e8f2"); this.configureCamera(); this.createScenery();
     this.mapLayers = {}; ["Background", "Ground", "Platforms", "Decorations"].forEach((name, index) => { const layer = this.map.createLayer(name, this.tileset, 0, 0).setScale(MAP_SCALE).setDepth(index === 0 ? -6 : index + 1); this.mapLayers[name] = layer; }); this.mapLayers.Ground.setCollisionByExclusion([-1]); this.mapLayers.Platforms.setCollisionByExclusion([-1]); this.validateMapLayout();
     const spawn = this.getMapObject("Spawn_Exit", "spawn"); this.spawnPoint = this.objectPoint(spawn); this.checkpointPoint = this.spawnPoint; this.player = new Player(this, this.character, this.spawnPoint.x, this.spawnPoint.y); this.physics.add.collider(this.player.sprite, [this.mapLayers.Ground, this.mapLayers.Platforms]);
-    this.createCoins(); this.createEnemies(); this.createCheckpointAndPortal(); this.touch = new TouchInput(); this.keys = this.input.keyboard.addKeys({ left: "LEFT", right: "RIGHT", up: "UP", a: "A", d: "D", w: "W", space: "SPACE" });
+    this.createCoins(); this.createEnemies(); this.createHazards(); this.createCheckpointAndPortal(); this.touch = new TouchInput(); this.keys = this.input.keyboard.addKeys({ left: "LEFT", right: "RIGHT", up: "UP", a: "A", d: "D", w: "W", space: "SPACE" });
     this.lives = 3; this.runCoins = 0; this.checkpointActive = false; this.ended = false; this.dying = false; this.paused = false; this.ui = new GameUi(this, this.character); this.ui.update(this.runCoins, this.lives); this.ui.pause.on("pointerup", () => this.togglePause()); this.input.keyboard.on("keydown-ESC", () => this.togglePause());
-    this.cameras.main.startFollow(this.player.sprite, true, .09, .09).setDeadzone(180, 65); const hint = this.add.text(480, 155, "Salta sobre los enemigos y busca el portal", { fontFamily: '"Trebuchet MS"', fontSize: "20px", fontStyle: "bold", color: "#564468", stroke: "#fffdf3", strokeThickness: 5 }).setOrigin(.5).setScrollFactor(0).setDepth(19); this.tweens.add({ targets: hint, alpha: 0, delay: 3200, duration: 500, onComplete: () => hint.destroy() });
+    this.cameras.main.startFollow(this.player.sprite, true, .1, .1).setFollowOffset(0, -130).setDeadzone(220, 95); const hint = this.add.text(480, 155, "Salta sobre los enemigos y busca el portal", { fontFamily: '"Trebuchet MS"', fontSize: "20px", fontStyle: "bold", color: "#564468", stroke: "#fffdf3", strokeThickness: 5 }).setOrigin(.5).setScrollFactor(0).setDepth(19); this.tweens.add({ targets: hint, alpha: 0, delay: 3200, duration: 500, onComplete: () => hint.destroy() });
+  }
+
+  configureCamera() {
+    const ratio = this.scale.width / this.scale.height;
+    const zoom = Phaser.Math.Clamp(ratio > 1.8 ? 1.26 : ratio < .82 ? 1.04 : 1.14, 1, 1.26);
+    this.cameras.main.setZoom(zoom);
+    if (!this.resizeBound) {
+      this.resizeBound = true;
+      this.scale.on(Phaser.Scale.Events.RESIZE, () => this.configureCamera());
+    }
   }
 
   createScenery() {
     const sky = this.add.tileSprite(480, 210, 1100, 480, "kenneyBackgrounds", 0).setScrollFactor(0).setDepth(-12); sky.tileScaleX = 2; sky.tileScaleY = 2;
-    const distant = this.add.tileSprite(this.level.width / 2, 490, this.level.width + 960, 180, "kenneyBackgrounds", 10).setScrollFactor(.15).setDepth(-10); distant.tileScaleX = 3; distant.tileScaleY = 3;
-    const middle = this.add.tileSprite(this.level.width / 2, 550, this.level.width + 960, 110, "kenneyBackgrounds", 18).setScrollFactor(.35).setDepth(-7); middle.tileScaleX = 3; middle.tileScaleY = 3; middle.setAlpha(.8);
+    const distant = this.add.tileSprite(this.level.width / 2, 475, this.level.width + 960, 190, "kenneyBackgrounds", 10).setScrollFactor(.15).setDepth(-10); distant.tileScaleX = 3; distant.tileScaleY = 3;
+    const middle = this.add.tileSprite(this.level.width / 2, 560, this.level.width + 960, 125, "kenneyBackgrounds", 18).setScrollFactor(.35).setDepth(-7); middle.tileScaleX = 3; middle.tileScaleY = 3; middle.setAlpha(.82);
   }
 
   createCoins() {
@@ -48,14 +60,39 @@ export class ForestScene extends Phaser.Scene {
 
   createEnemies() {
     this.enemies = this.physics.add.group({ allowGravity: true });
-    this.map.getObjectLayer("Enemies").objects.forEach((object) => { const point = this.objectPoint(object); const type = object.type; const range = this.objectProperty(object, "range", 5) * TILE; const frame = type === "slime" ? KENNEY.slime : KENNEY.patroller; const enemy = this.enemies.create(point.x, point.y, "kenneyCharacters", frame).setScale(2.05).setDepth(4).setDataEnabled(); enemy.setData({ type, min: point.x - range, max: point.x + range, speed: type === "slime" ? 60 : 82 }); enemy.body.setSize(17, 20).setOffset(4, 3); enemy.setVelocityX(enemy.getData("speed")); });
+    this.map.getObjectLayer("Enemies").objects.forEach((object) => { const point = this.objectPoint(object); const type = object.type; const range = this.objectProperty(object, "range", 5) * TILE; const frame = type === "slime" ? KENNEY.slime : KENNEY.patroller; const enemy = this.enemies.create(point.x, point.y, "kenneyCharacters", frame).setScale(2.05).setDepth(4).setDataEnabled(); enemy.setData({ type, min: point.x - range, max: point.x + range, speed: type === "slime" ? 60 : 82 }); enemy.body.setSize(17, 20).setOffset(4, 3); enemy.setVelocityX(enemy.getData("speed")); this.tweens.add({ targets: enemy, scaleY: 2.17, duration: type === "slime" ? 420 : 640, yoyo: true, repeat: -1, ease: "Sine.easeInOut" }); });
     this.physics.add.collider(this.enemies, [this.mapLayers.Ground, this.mapLayers.Platforms]); this.physics.add.overlap(this.player.sprite, this.enemies, (_, enemy) => this.hitEnemy(enemy));
   }
 
+  createHazards() {
+    this.hazards = this.physics.add.staticGroup();
+    this.map.getObjectLayer("Hazards").objects.forEach((object) => {
+      const point = this.objectPoint(object);
+      const cactus = this.hazards.create(point.x, point.y, "kenneyTiles", KENNEY.cactus).setScale(2.7).setDepth(4);
+      cactus.body.setSize(12, 14).setOffset(3, 4);
+      cactus.refreshBody();
+    });
+    this.physics.add.overlap(this.player.sprite, this.hazards, () => this.damagePlayer("cactus"));
+  }
+
   createCheckpointAndPortal() {
-    const checkpointObject = this.getMapObject("Checkpoints", "checkpoint"); this.checkpointPoint = this.objectPoint(checkpointObject); this.checkpoint = this.physics.add.image(this.checkpointPoint.x, this.checkpointPoint.y, "kenneyTiles", KENNEY.checkpoint).setScale(2.8).setDepth(4); this.checkpoint.body.setAllowGravity(false).setImmovable(true);
+    const checkpointObject = this.getMapObject("Checkpoints", "checkpoint"); const checkpointBase = this.objectPoint(checkpointObject); this.checkpointPoint = { x: checkpointBase.x - TILE, y: checkpointBase.y }; this.createFlagTextures(); this.checkpoint = this.physics.add.sprite(checkpointBase.x, checkpointBase.y + 27, "flag-off-0").setOrigin(.5, 1).setDepth(5); this.checkpoint.body.setAllowGravity(false).setImmovable(true); this.checkpoint.body.setSize(20, 38).setOffset(8, 7); this.checkpoint.play("flag-off-wave");
     const exit = this.getMapObject("Spawn_Exit", "exit"); const exitPoint = this.objectPoint(exit); this.portal = this.physics.add.image(exitPoint.x, exitPoint.y, "kenneyTiles", KENNEY.portal).setScale(3.3).setDepth(4); this.portal.body.setAllowGravity(false).setImmovable(true); this.tweens.add({ targets: this.portal, scaleY: 3.55, scaleX: 3.1, duration: 800, yoyo: true, repeat: -1 });
     this.physics.add.overlap(this.player.sprite, this.checkpoint, () => this.activateCheckpoint()); this.physics.add.overlap(this.player.sprite, this.portal, () => this.finishLevel());
+  }
+
+  createFlagTextures() {
+    if (this.textures.exists("flag-off-0")) return;
+    const drawFlag = (key, cloth, wave) => {
+      const graphics = this.add.graphics();
+      graphics.fillStyle(0x6e4a32).fillRect(7, 2, 3, 31).fillStyle(0xf4cb5e).fillRect(6, 0, 5, 5);
+      graphics.fillStyle(cloth).fillRect(10, 6, 11 + wave, 9).fillRect(10, 15, 8 + wave, 2);
+      graphics.fillStyle(0xffffff, .35).fillRect(11, 7, 2, 8);
+      graphics.generateTexture(key, 24, 34);
+      graphics.destroy();
+    };
+    [-1, 1, 3].forEach((wave, index) => { drawFlag(`flag-off-${index}`, 0xd96975, wave); drawFlag(`flag-on-${index}`, 0x7ccf84, wave); });
+    ["off", "on"].forEach((state) => this.anims.create({ key: `flag-${state}-wave`, frames: [0, 1, 2, 1].map((frame) => ({ key: `flag-${state}-${frame}` })), frameRate: 6, repeat: -1 }));
   }
 
   getMapObject(layerName, type) { return this.map.getObjectLayer(layerName).objects.find((object) => object.type === type); }
@@ -65,15 +102,21 @@ export class ForestScene extends Phaser.Scene {
     const maxJumpHeight = (620 ** 2) / (2 * 1000); const maxJumpDistance = 265 * ((2 * 620) / 1000); const problems = [];
     const platformTiles = this.mapLayers.Platforms; const groundTiles = this.mapLayers.Ground;
     this.map.getObjectLayer("Coins").objects.forEach((coin) => { const x = Math.floor(coin.x / 18); const y = Math.floor(coin.y / 18); if (platformTiles.getTileAt(x, y) || groundTiles.getTileAt(x, y)) problems.push(`Moneda incrustada: ${coin.name}`); });
-    const rows = new Set(); platformTiles.forEachTile((tile) => { if (tile.index >= 0) rows.add(tile.y); }); if ([...rows].some((row) => (10 - row) * TILE > maxJumpHeight)) problems.push("Hay una plataforma por encima de la altura máxima de salto."); if (maxJumpDistance < 140) problems.push("La distancia máxima de salto no cubre el hueco diseñado.");
+    const rows = [...new Set()]; platformTiles.forEachTile((tile) => { if (tile.index >= 0 && !rows.includes(tile.y)) rows.push(tile.y); }); rows.sort((a, b) => a - b); if (rows.some((row, index) => index > 0 && (row - rows[index - 1]) * TILE > maxJumpHeight)) problems.push("Hay escalones por encima de la altura máxima de salto."); if (maxJumpDistance < 140) problems.push("La distancia máxima de salto no cubre el hueco diseñado.");
+    this.map.getObjectLayer("Hazards").objects.forEach((hazard) => { const x = Math.floor(hazard.x / 18); const y = Math.floor(hazard.y / 18) + 1; if (![groundTiles, platformTiles].some((layer) => layer.getTileAt(x, y))) problems.push(`Cactus sin suelo: ${hazard.name}`); });
     if (problems.length) console.warn("Validación de level_01:", problems); else console.info("level_01 validado: rutas, plataformas y monedas alcanzables.");
   }
 
   update() {
     if (this.paused || this.ended || this.dying) return;
     this.player.update(this.keys, this.touch);
-    this.enemies.children.each((enemy) => { if (!enemy.active) return; const speed = enemy.getData("speed"); if (enemy.x < enemy.getData("min")) enemy.setVelocityX(speed); if (enemy.x > enemy.getData("max")) enemy.setVelocityX(-speed); enemy.setFlipX(enemy.body.velocity.x < 0); });
-    if (this.player.sprite.y > 735) this.damagePlayer();
+    this.enemies.children.each((enemy) => { if (!enemy.active) return; const speed = enemy.getData("speed"); const direction = Math.sign(enemy.body.velocity.x) || 1; if (enemy.x <= enemy.getData("min") || enemy.x >= enemy.getData("max") || !this.hasFloorAhead(enemy, direction)) enemy.setVelocityX(-direction * speed); enemy.setFlipX(enemy.body.velocity.x < 0); });
+    if (this.player.sprite.body.top > this.deathY) this.damagePlayer("fall");
+  }
+
+  hasFloorAhead(enemy, direction) {
+    const x = Math.floor((enemy.x + direction * 30) / TILE); const y = Math.floor((enemy.body.bottom + 12) / TILE);
+    return [this.mapLayers.Ground, this.mapLayers.Platforms].some((layer) => layer.getTileAt(x, y));
   }
 
   pickCoin(coin) {
@@ -87,13 +130,17 @@ export class ForestScene extends Phaser.Scene {
   }
 
   activateCheckpoint() {
-    if (this.checkpointActive) return; this.checkpointActive = true; this.checkpoint.setTint(0xffed85); this.tweens.add({ targets: this.checkpoint, angle: { from: -5, to: 5 }, duration: 210, yoyo: true, repeat: 4 }); this.cameras.main.flash(280, 255, 240, 152); const message = this.add.text(this.checkpoint.x, this.checkpoint.y - 110, "¡Checkpoint guardado!", { fontFamily: '"Trebuchet MS"', fontSize: "23px", fontStyle: "bold", color: "#fff9d5", stroke: "#6a4a70", strokeThickness: 5 }).setOrigin(.5); this.tweens.add({ targets: message, y: message.y - 42, alpha: 0, duration: 1250, onComplete: () => message.destroy() });
+    if (this.checkpointActive) return; this.checkpointActive = true; this.checkpoint.play("flag-on-wave"); this.cameras.main.flash(280, 255, 240, 152); const message = this.add.text(this.checkpoint.x, this.checkpoint.y - 110, "¡Checkpoint activado!", { fontFamily: '"Trebuchet MS"', fontSize: "23px", fontStyle: "bold", color: "#fff9d5", stroke: "#6a4a70", strokeThickness: 5 }).setOrigin(.5); this.tweens.add({ targets: message, y: message.y - 42, alpha: 0, duration: 1250, onComplete: () => message.destroy() });
   }
 
-  damagePlayer() {
+  damagePlayer(reason = "enemy") {
     if (this.player.invulnerable || this.ended || this.dying) return; this.dying = true; this.lives -= 1; this.ui.update(this.runCoins, this.lives); this.cameras.main.shake(170, .012);
-    if (this.lives <= 0) { this.player.playSad(() => { this.ended = true; this.dying = false; this.physics.pause(); this.showModal("💧", "Game Over", "Bubu o Dudu necesita descansar. ¡Inténtalo otra vez desde el comienzo!", [["Reintentar", () => window.location.reload()], ["Volver al menú", () => window.location.assign("/")]]); }); return; }
-    const spawn = this.checkpointActive ? this.checkpointPoint : this.spawnPoint; this.player.takeHit(() => { this.player.respawn(spawn); this.dying = false; });
+    const spawn = this.checkpointActive ? this.checkpointPoint : this.spawnPoint;
+    // A fall is resolved at a safe spot before Hurt/Cry plays, so the visual
+    // feedback is never hidden under the map.
+    if (reason === "fall") this.player.sprite.setPosition(spawn.x, spawn.y - 25);
+    if (this.lives <= 0) { this.player.sprite.setPosition(spawn.x, spawn.y); this.player.playSad(() => { this.ended = true; this.dying = false; this.physics.pause(); this.showModal("💧", "Game Over", "Bubu necesita descansar. ¡Inténtalo otra vez desde el comienzo!", [["Reintentar", () => window.location.reload()], ["Volver al menú", () => window.location.assign("/")]]); }); return; }
+    this.player.takeHit(() => { this.player.respawn(spawn); this.dying = false; });
   }
 
   togglePause() { if (this.ended || this.dying) return; this.paused ? this.resumeGame() : this.pauseGame(); }

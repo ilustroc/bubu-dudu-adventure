@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
     "generate:level": "node scripts/generate-level-01.mjs",
-    "normalize:bubu": "powershell -ExecutionPolicy Bypass -File scripts/normalize-bubu-sprites.ps1"
+    "normalize:bubu": "powershell -ExecutionPolicy Bypass -File scripts/normalize-bubu-sprites.ps1",
+    "validate:level": "node scripts/validate-level-01.mjs"
   },
   "dependencies": { "phaser": "^3.90.0" },
   "devDependencies": { "vite": "^7.1.7" }
