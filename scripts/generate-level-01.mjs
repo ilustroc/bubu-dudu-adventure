@@ -47,21 +47,20 @@ let id = 1;
 const objectLayer = (name, objects) => ({ id: id++, name, type: "objectgroup", visible: true, opacity: 1, draworder: "topdown", objects });
 const coins = [
   [6, 9], [10, 9], [16, 7], [24, 7], [31, 9],
-  [46, 7], [53, 6], [61, 5], [65, 6], [69, 6],
-  [85, 7], [92, 6], [100, 5], [108, 6], [121, 7],
-  [129, 6], [137, 5], [146, 7], [161, 7], [169, 6],
+  [46, 7], [53, 6], [60, 5], [65, 6], [69, 6],
+  [85, 7], [92, 6], [99, 5], [108, 6], [121, 7],
+  [129, 6], [137, 5], [146, 7], [161, 7], [168, 6],
   [175, 5], [187, 7], [194, 6],
 ];
 const coinsLayer = objectLayer("Coins", coins.map(([x, y], index) => object(id++, `coin-${String(index + 1).padStart(2, "0")}`, "coin", x, y)));
 const enemiesLayer = objectLayer("Enemies", [
-  // Enemies teach stomping on the elevated optional route; the lower route
-  // remains readable and completable for a first-time player.
-  object(id++, "slime-01", "slime", 16, 7, [{ name: "range", type: "int", value: 1 }]),
-  object(id++, "slime-02", "slime", 54, 6, [{ name: "range", type: "int", value: 1 }]),
-  object(id++, "patrol-01", "patroller", 86, 7, [{ name: "range", type: "int", value: 1 }]),
-  object(id++, "slime-03", "slime", 129, 6, [{ name: "range", type: "int", value: 1 }]),
-  object(id++, "patrol-02", "patroller", 169, 6, [{ name: "range", type: "int", value: 1 }]),
-  object(id++, "slime-04", "slime", 189, 7, [{ name: "range", type: "int", value: 1 }]),
+  // Main-route lessons: safe starting distance, clear patrol lengths and no pits.
+  object(id++, "slime-01", "slime", 14, 10, [{ name: "range", type: "int", value: 3 }]),
+  object(id++, "slime-02", "slime", 55, 10, [{ name: "range", type: "int", value: 3 }]),
+  object(id++, "patrol-01", "patroller", 88, 10, [{ name: "range", type: "int", value: 4 }]),
+  object(id++, "slime-03", "slime", 132, 10, [{ name: "range", type: "int", value: 3 }]),
+  object(id++, "patrol-02", "patroller", 168, 10, [{ name: "range", type: "int", value: 3 }]),
+  object(id++, "slime-04", "slime", 190, 10, [{ name: "range", type: "int", value: 2 }]),
 ]);
 const hazardsLayer = objectLayer("Hazards", [
   // Cacti live on solid raised tiles: visible lessons for optional routes,
@@ -70,7 +69,7 @@ const hazardsLayer = objectLayer("Hazards", [
   object(id++, "cactus-03", "cactus", 102, 5), object(id++, "cactus-04", "cactus", 170, 6),
 ]);
 const checkpointsLayer = objectLayer("Checkpoints", [object(id++, "checkpoint-01", "checkpoint", 105, 10)]);
-const spawnExitLayer = objectLayer("Spawn_Exit", [object(id++, "spawn", "spawn", 3, 10), object(id++, "exit", "exit", 196, 9)]);
+const spawnExitLayer = objectLayer("Spawn_Exit", [object(id++, "spawn", "spawn", 3, 10), object(id++, "exit", "exit", 196, 10)]);
 const tileLayer = (name, data) => ({ id: id++, name, type: "tilelayer", x: 0, y: 0, width, height, visible: true, opacity: 1, data });
 const map = {
   compressionlevel: -1, height, infinite: false,

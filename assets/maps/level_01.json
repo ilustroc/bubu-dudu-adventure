@@ -12951,7 +12951,7 @@
           "id": 8,
           "name": "coin-08",
           "type": "coin",
-          "x": 1098,
+          "x": 1080,
           "y": 90,
           "width": 18,
           "height": 18,
@@ -13011,7 +13011,7 @@
           "id": 13,
           "name": "coin-13",
           "type": "coin",
-          "x": 1800,
+          "x": 1782,
           "y": 90,
           "width": 18,
           "height": 18,
@@ -13095,7 +13095,7 @@
           "id": 20,
           "name": "coin-20",
           "type": "coin",
-          "x": 3042,
+          "x": 3024,
           "y": 108,
           "width": 18,
           "height": 18,
@@ -13153,8 +13153,8 @@
           "id": 25,
           "name": "slime-01",
           "type": "slime",
-          "x": 288,
-          "y": 126,
+          "x": 252,
+          "y": 180,
           "width": 18,
           "height": 18,
           "rotation": 0,
@@ -13163,7 +13163,7 @@
             {
               "name": "range",
               "type": "int",
-              "value": 1
+              "value": 3
             }
           ]
         },
@@ -13171,8 +13171,8 @@
           "id": 26,
           "name": "slime-02",
           "type": "slime",
-          "x": 972,
-          "y": 108,
+          "x": 990,
+          "y": 180,
           "width": 18,
           "height": 18,
           "rotation": 0,
@@ -13181,7 +13181,7 @@
             {
               "name": "range",
               "type": "int",
-              "value": 1
+              "value": 3
             }
           ]
         },
@@ -13189,8 +13189,8 @@
           "id": 27,
           "name": "patrol-01",
           "type": "patroller",
-          "x": 1548,
-          "y": 126,
+          "x": 1584,
+          "y": 180,
           "width": 18,
           "height": 18,
           "rotation": 0,
@@ -13199,7 +13199,7 @@
             {
               "name": "range",
               "type": "int",
-              "value": 1
+              "value": 4
             }
           ]
         },
@@ -13207,8 +13207,8 @@
           "id": 28,
           "name": "slime-03",
           "type": "slime",
-          "x": 2322,
-          "y": 108,
+          "x": 2376,
+          "y": 180,
           "width": 18,
           "height": 18,
           "rotation": 0,
@@ -13217,7 +13217,7 @@
             {
               "name": "range",
               "type": "int",
-              "value": 1
+              "value": 3
             }
           ]
         },
@@ -13225,8 +13225,8 @@
           "id": 29,
           "name": "patrol-02",
           "type": "patroller",
-          "x": 3042,
-          "y": 108,
+          "x": 3024,
+          "y": 180,
           "width": 18,
           "height": 18,
           "rotation": 0,
@@ -13235,7 +13235,7 @@
             {
               "name": "range",
               "type": "int",
-              "value": 1
+              "value": 3
             }
           ]
         },
@@ -13243,8 +13243,8 @@
           "id": 30,
           "name": "slime-04",
           "type": "slime",
-          "x": 3402,
-          "y": 126,
+          "x": 3420,
+          "y": 180,
           "width": 18,
           "height": 18,
           "rotation": 0,
@@ -13253,7 +13253,7 @@
             {
               "name": "range",
               "type": "int",
-              "value": 1
+              "value": 2
             }
           ]
         }
@@ -13364,7 +13364,7 @@
           "name": "exit",
           "type": "exit",
           "x": 3528,
-          "y": 162,
+          "y": 180,
           "width": 18,
           "height": 18,
           "rotation": 0,

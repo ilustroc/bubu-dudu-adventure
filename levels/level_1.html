@@ -10,7 +10,9 @@
   <body class="game-page">
     <main class="game-shell">
       <div id="game-container" aria-label="Nivel 1: El bosque encantado"></div>
+      <section id="game-hud" class="game-hud" aria-label="Estado del nivel"><strong id="hud-level">Nivel 1 · El Bosque Encantado</strong><span id="hud-coins">✦ 0 / 23</span><span id="hud-hearts">♥♥♥</span><small id="hud-hero">Jugando: Bubu</small><button id="hud-pause" type="button" aria-label="Pausar juego">Ⅱ</button></section>
       <div id="touch-controls" class="touch-controls" aria-label="Controles táctiles"><div class="touch-pad"><button type="button" data-control="left" aria-label="Mover a la izquierda">◀</button><button type="button" data-control="right" aria-label="Mover a la derecha">▶</button></div><button type="button" class="jump-button" data-control="jump" aria-label="Saltar">↑<small>SALTAR</small></button></div>
+      <button id="test-reset" class="test-reset" type="button" hidden>Prueba: reiniciar nivel</button>
       <div id="game-modal" class="game-modal" hidden><section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title"><span id="modal-icon" class="modal-icon">✦</span><h1 id="modal-title">Pausa</h1><p id="modal-copy"></p><div id="modal-actions" class="modal-actions"></div></section></div>
     </main>
     <script type="module" src="/src/game/boot.js"></script>

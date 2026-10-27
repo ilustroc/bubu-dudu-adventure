@@ -24,7 +24,7 @@ export class ForestScene extends Phaser.Scene {
   }
 
   create() {
-    const requested = new URLSearchParams(window.location.search).get("character"); if (requested === "dudu") { window.location.replace("/?notice=dudu"); return; } this.character = "bubu"; saveSelectedCharacter(this.character);
+    const query = new URLSearchParams(window.location.search); const requested = query.get("character"); if (requested === "dudu") { window.location.replace("/?notice=dudu"); return; } this.testMode = query.get("test") === "1"; this.character = "bubu"; saveSelectedCharacter(this.character);
     this.map = this.make.tilemap({ key: "level01" }); this.tileset = this.map.addTilesetImage("kenney_pixel_platformer", "kenneyTiles", 18, 18, 0, 0); this.level = { id: "level1", width: this.map.width * TILE, height: this.map.height * TILE };
     this.deathY = this.level.height + 150;
     this.physics.world.setBounds(0, -220, this.level.width, this.deathY + 240);
@@ -32,7 +32,7 @@ export class ForestScene extends Phaser.Scene {
     this.mapLayers = {}; ["Background", "Ground", "Platforms", "Decorations"].forEach((name, index) => { const layer = this.map.createLayer(name, this.tileset, 0, 0).setScale(MAP_SCALE).setDepth(index === 0 ? -6 : index + 1); this.mapLayers[name] = layer; }); this.mapLayers.Ground.setCollisionByExclusion([-1]); this.mapLayers.Platforms.setCollisionByExclusion([-1]); this.validateMapLayout();
     const spawn = this.getMapObject("Spawn_Exit", "spawn"); this.spawnPoint = this.objectPoint(spawn); this.checkpointPoint = this.spawnPoint; this.player = new Player(this, this.character, this.spawnPoint.x, this.spawnPoint.y); this.physics.add.collider(this.player.sprite, [this.mapLayers.Ground, this.mapLayers.Platforms]);
     this.createCoins(); this.createEnemies(); this.createHazards(); this.createCheckpointAndPortal(); this.touch = new TouchInput(); this.keys = this.input.keyboard.addKeys({ left: "LEFT", right: "RIGHT", up: "UP", a: "A", d: "D", w: "W", space: "SPACE" });
-    this.lives = 3; this.runCoins = 0; this.checkpointActive = false; this.ended = false; this.dying = false; this.paused = false; this.ui = new GameUi(this, this.character); this.ui.update(this.runCoins, this.lives); this.ui.pause.on("pointerup", () => this.togglePause()); this.input.keyboard.on("keydown-ESC", () => this.togglePause());
+    this.lives = 3; this.runCoins = 0; this.checkpointActive = false; this.ended = false; this.dying = false; this.paused = false; this.ui = new GameUi(this, this.character); this.ui.update(this.runCoins, this.lives, this.coins.countActive(true)); this.ui.pause.addEventListener("click", () => this.togglePause()); this.input.keyboard.on("keydown-ESC", () => this.togglePause()); this.createTestControls();
     this.cameras.main.startFollow(this.player.sprite, true, .1, .1).setFollowOffset(0, -130).setDeadzone(220, 95); const hint = this.add.text(480, 155, "Salta sobre los enemigos y busca el portal", { fontFamily: '"Trebuchet MS"', fontSize: "20px", fontStyle: "bold", color: "#564468", stroke: "#fffdf3", strokeThickness: 5 }).setOrigin(.5).setScrollFactor(0).setDepth(19); this.tweens.add({ targets: hint, alpha: 0, delay: 3200, duration: 500, onComplete: () => hint.destroy() });
   }
 
@@ -47,20 +47,34 @@ export class ForestScene extends Phaser.Scene {
   }
 
   createScenery() {
-    const sky = this.add.tileSprite(480, 210, 1100, 480, "kenneyBackgrounds", 0).setScrollFactor(0).setDepth(-12); sky.tileScaleX = 2; sky.tileScaleY = 2;
-    const distant = this.add.tileSprite(this.level.width / 2, 475, this.level.width + 960, 190, "kenneyBackgrounds", 10).setScrollFactor(.15).setDepth(-10); distant.tileScaleX = 3; distant.tileScaleY = 3;
-    const middle = this.add.tileSprite(this.level.width / 2, 560, this.level.width + 960, 125, "kenneyBackgrounds", 18).setScrollFactor(.35).setDepth(-7); middle.tileScaleX = 3; middle.tileScaleY = 3; middle.setAlpha(.82);
+    const sky = this.add.rectangle(this.level.width / 2, 330, this.level.width, 760, 0xa9e8f2).setScrollFactor(0).setDepth(-20);
+    const clouds = this.add.graphics().setScrollFactor(.08).setDepth(-18); clouds.fillStyle(0xffffff, .72); for (let x = -180; x < this.level.width + 360; x += 430) { clouds.fillCircle(x, 220 + ((x / 43) % 3) * 22, 42); clouds.fillCircle(x + 44, 205 + ((x / 43) % 3) * 22, 58); clouds.fillCircle(x + 100, 225 + ((x / 43) % 3) * 22, 38); }
+    const mountains = this.add.graphics().setScrollFactor(.16).setDepth(-16); mountains.fillStyle(0x91c9b8, .8); for (let x = -240; x < this.level.width + 360; x += 380) mountains.fillTriangle(x, 520, x + 190, 250 + (Math.abs(x) % 70), x + 380, 520);
+    this.drawForestLayer(.28, -14, 0x719d78, 390, 210, 460);
+    this.drawForestLayer(.52, -8, 0x4e805e, 440, 250, 555);
+    const flowers = this.add.graphics().setScrollFactor(.9).setDepth(3); for (let x = 110; x < this.level.width; x += 260) { flowers.fillStyle(0xffc0d0).fillRect(x, 565, 7, 7); flowers.fillStyle(0xffec83).fillRect(x + 7, 565, 7, 7); flowers.fillStyle(0x75b95f).fillRect(x + 4, 572, 3, 16); }
+  }
+
+  drawForestLayer(scrollFactor, depth, canopy, spacing, trunkHeight, baseY) {
+    const layer = this.add.graphics().setScrollFactor(scrollFactor).setDepth(depth);
+    for (let x = -200; x < this.level.width + 300; x += spacing) {
+      const h = trunkHeight + ((x / spacing) % 3) * 24;
+      layer.fillStyle(0x765239).fillRect(x + 54, baseY - h, 22, h + 55);
+      layer.fillStyle(canopy).fillRect(x, baseY - h - 70, 130, 95);
+      layer.fillStyle(Phaser.Display.Color.IntegerToColor(canopy).brighten(12).color).fillRect(x + 20, baseY - h - 94, 88, 48);
+      layer.fillStyle(0x3f6b51, .45).fillRect(x - 18, baseY - 12, 165, 24);
+    }
   }
 
   createCoins() {
-    this.coins = this.physics.add.group({ allowGravity: false, immovable: true }); const collected = collectedCoinIds(this.level.id);
+    this.coins = this.physics.add.group({ allowGravity: false, immovable: true }); const collected = this.testMode ? new Set() : collectedCoinIds(this.level.id);
     this.map.getObjectLayer("Coins").objects.forEach((object, index) => { if (collected.has(object.name)) return; const point = this.objectPoint(object); const coin = this.coins.create(point.x, point.y, "kenneyTiles", KENNEY.coin).setScale(2.15).setDepth(5); coin.setData("id", object.name); coin.body.setCircle(7, 2, 2); this.tweens.add({ targets: coin, y: point.y - 7, duration: 650 + (index % 3) * 90, yoyo: true, repeat: -1, ease: "Sine.easeInOut" }); });
     this.physics.add.overlap(this.player.sprite, this.coins, (_, coin) => this.pickCoin(coin));
   }
 
   createEnemies() {
     this.enemies = this.physics.add.group({ allowGravity: true });
-    this.map.getObjectLayer("Enemies").objects.forEach((object) => { const point = this.objectPoint(object); const type = object.type; const range = this.objectProperty(object, "range", 5) * TILE; const frame = type === "slime" ? KENNEY.slime : KENNEY.patroller; const enemy = this.enemies.create(point.x, point.y, "kenneyCharacters", frame).setScale(2.05).setDepth(4).setDataEnabled(); enemy.setData({ type, min: point.x - range, max: point.x + range, speed: type === "slime" ? 60 : 82 }); enemy.body.setSize(17, 20).setOffset(4, 3); enemy.setVelocityX(enemy.getData("speed")); this.tweens.add({ targets: enemy, scaleY: 2.17, duration: type === "slime" ? 420 : 640, yoyo: true, repeat: -1, ease: "Sine.easeInOut" }); });
+    this.map.getObjectLayer("Enemies").objects.forEach((object) => { const point = this.objectPoint(object); const type = object.type; const range = this.objectProperty(object, "range", 5) * TILE; const frame = type === "slime" ? KENNEY.slime : KENNEY.patroller; const enemy = this.enemies.create(point.x, point.y, "kenneyCharacters", frame).setScale(2.05).setDepth(4).setDataEnabled(); enemy.setData({ type, min: point.x - range, max: point.x + range, speed: type === "slime" ? 60 : 82, direction: 1, turnUntil: 0 }); enemy.body.setSize(17, 20).setOffset(4, 3); enemy.setVelocityX(enemy.getData("speed")); });
     this.physics.add.collider(this.enemies, [this.mapLayers.Ground, this.mapLayers.Platforms]); this.physics.add.overlap(this.player.sprite, this.enemies, (_, enemy) => this.hitEnemy(enemy));
   }
 
@@ -110,7 +124,7 @@ export class ForestScene extends Phaser.Scene {
   update() {
     if (this.paused || this.ended || this.dying) return;
     this.player.update(this.keys, this.touch);
-    this.enemies.children.each((enemy) => { if (!enemy.active) return; const speed = enemy.getData("speed"); const direction = Math.sign(enemy.body.velocity.x) || 1; if (enemy.x <= enemy.getData("min") || enemy.x >= enemy.getData("max") || !this.hasFloorAhead(enemy, direction)) enemy.setVelocityX(-direction * speed); enemy.setFlipX(enemy.body.velocity.x < 0); });
+    this.enemies.children.each((enemy) => this.updateEnemyPatrol(enemy));
     if (this.player.sprite.body.top > this.deathY) this.damagePlayer("fall");
   }
 
@@ -119,8 +133,25 @@ export class ForestScene extends Phaser.Scene {
     return [this.mapLayers.Ground, this.mapLayers.Platforms].some((layer) => layer.getTileAt(x, y));
   }
 
+  updateEnemyPatrol(enemy) {
+    if (!enemy.active) return;
+    let direction = enemy.getData("direction"); const now = this.time.now;
+    const reachedLimit = (direction < 0 && enemy.x <= enemy.getData("min")) || (direction > 0 && enemy.x >= enemy.getData("max"));
+    const hitWall = (direction < 0 && enemy.body.blocked.left) || (direction > 0 && enemy.body.blocked.right);
+    if ((reachedLimit || hitWall || !this.hasFloorAhead(enemy, direction)) && now >= enemy.getData("turnUntil")) {
+      direction *= -1; enemy.setData({ direction, turnUntil: now + 160 }); enemy.x = Phaser.Math.Clamp(enemy.x, enemy.getData("min"), enemy.getData("max"));
+    }
+    enemy.setVelocityX(direction * enemy.getData("speed")); enemy.setFlipX(direction < 0);
+  }
+
+  createTestControls() {
+    if (!this.testMode) return;
+    const reset = document.querySelector("#test-reset"); reset.hidden = false;
+    reset.addEventListener("click", () => window.location.reload());
+  }
+
   pickCoin(coin) {
-    if (!coin.active || !collectCoin(this.level.id, coin.getData("id"))) return; this.runCoins += 1; const { x, y } = coin; coin.destroy(); this.ui.update(this.runCoins, this.lives);
+    if (!coin.active || (!this.testMode && !collectCoin(this.level.id, coin.getData("id")))) return; this.runCoins += 1; const { x, y } = coin; coin.destroy(); this.ui.update(this.runCoins, this.lives, this.coins.countActive(true));
     for (let i = 0; i < 5; i += 1) { const sparkle = this.add.text(x, y, "✦", { fontSize: "16px", color: "#ffe894" }).setDepth(10); this.tweens.add({ targets: sparkle, x: x + Phaser.Math.Between(-25, 25), y: y + Phaser.Math.Between(-30, 20), alpha: 0, scale: 1.8, duration: 380, onComplete: () => sparkle.destroy() }); }
   }
 
@@ -134,7 +165,7 @@ export class ForestScene extends Phaser.Scene {
   }
 
   damagePlayer(reason = "enemy") {
-    if (this.player.invulnerable || this.ended || this.dying) return; this.dying = true; this.lives -= 1; this.ui.update(this.runCoins, this.lives); this.cameras.main.shake(170, .012);
+    if (this.player.invulnerable || this.ended || this.dying) return; this.dying = true; this.lives -= 1; this.ui.update(this.runCoins, this.lives, this.coins.countActive(true)); this.cameras.main.shake(170, .012);
     const spawn = this.checkpointActive ? this.checkpointPoint : this.spawnPoint;
     // A fall is resolved at a safe spot before Hurt/Cry plays, so the visual
     // feedback is never hidden under the map.

@@ -24,6 +24,10 @@ Capas de objetos: `Coins`, `Enemies`, `Hazards`, `Checkpoints`, `Spawn_Exit`. Lo
 
 El mapa está formado por cinco zonas: introducción, primer desafío, exploración con ruta superior opcional, checkpoint y desafío final. La física actual da a Bubu una altura teórica de salto de ~192 px y un alcance de ~329 px; los escalones y huecos de la plantilla están por debajo de esos límites.
 
+### Modo de prueba local
+
+Abre `levels/level_1.html?character=bubu&test=1` durante QA. Este modo deja disponibles las 23 monedas y añade el botón **Prueba: reiniciar nivel**: recarga solamente la partida de prueba y no modifica las monedas permanentes ni el progreso. El progreso normal se guarda por `localStorage`, que el navegador separa por origen; por tanto `localhost:5173` y una IP de red como `10.60.1.6:5173` mantienen historiales independientes.
+
 ## Bubu
 
 Los sprites oficiales están en `public/assets/characters/bubu/`. Ejecuta `npm run normalize:bubu` después de reemplazarlos. La documentación de estados, fotogramas y transición está en `docs/bubu-animations.md`.
