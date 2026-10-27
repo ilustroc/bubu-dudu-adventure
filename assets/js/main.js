@@ -1,34 +1,5 @@
-let selectedCharacterKey = null;
-const playButton = document.querySelector(".btn.btn-primary.mb-2");
-const selectionMessage = document.getElementById("character-selection");
-
-document.querySelectorAll(".character").forEach((button) => {
-  button.addEventListener("click", () => {
-    selectedCharacterKey = button.dataset.character;
-    const character = selectedCharacterKey === "bubu" ? "Bubu" : "Dudu";
-
-    document.querySelectorAll(".character img").forEach((image) => {
-      const imageCharacterKey = image.closest(".character").dataset.character;
-      image.src = `assets/images/${imageCharacterKey}.png`;
-    });
-
-    const characterImage = button.querySelector("img");
-    if (characterImage) {
-      characterImage.src = `assets/images/${selectedCharacterKey}.gif`;
-    }
-
-    selectionMessage.textContent = `Seleccionaste a ${character}`;
-  });
-});
-
-if (playButton) {
-  playButton.addEventListener("click", (event) => {
-    if (!selectedCharacterKey) {
-      event.preventDefault();
-      selectionMessage.textContent = "Selecciona un personaje para jugar.";
-      return;
-    }
-
-    window.location.href = `levels/level_1.html?character=${encodeURIComponent(selectedCharacterKey)}`;
-  });
-}
+import { getProgress, saveSelectedCharacter } from "/src/shared/progress.js";
+const characterNames = { bubu: "Bubu", dudu: "Dudu" };
+const cards = [...document.querySelectorAll(".character-card")]; const message = document.querySelector("#character-selection"); const playButton = document.querySelector("#play-button"); let selectedCharacter = null;
+function selectCharacter(character) { selectedCharacter = character; saveSelectedCharacter(character); cards.forEach((card) => { const selected = !card.disabled && card.dataset.character === character; card.classList.toggle("is-selected", selected); card.setAttribute("aria-pressed", String(selected)); }); message.textContent = "¡Rescata a Dudu!"; }
+cards.filter((card) => !card.disabled).forEach((card) => card.addEventListener("click", () => selectCharacter(card.dataset.character))); playButton.addEventListener("click", () => { if (!selectedCharacter) { message.textContent = "Elige a Bubu para comenzar la aventura."; return; } window.location.assign("/levels/level_1.html?character=bubu"); }); document.querySelectorAll("[data-dialog]").forEach((button) => button.addEventListener("click", () => document.getElementById(button.dataset.dialog).showModal())); document.querySelectorAll(".dialog-close").forEach((button) => button.addEventListener("click", () => button.closest("dialog").close())); document.querySelector("#coin-balance").textContent = getProgress().coins; if (new URLSearchParams(window.location.search).get("notice") === "dudu") message.textContent = "Dudu estará disponible cuando sus animaciones oficiales estén listas.";

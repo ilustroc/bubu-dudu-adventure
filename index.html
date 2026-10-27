@@ -3,66 +3,116 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#8ed9f4" />
     <title>Bubu & Dudu | Al Rescate</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
-      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
-      crossorigin="anonymous"
-    />
-    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="stylesheet" href="/assets/css/styles.css" />
   </head>
-  <body>
-    <div class="body align-items-center">
-      <div class="jumbotron bg-light p-5">
-        <h1 class="display-4">Bubu & Dudu | Al Rescate</h1>
-
-        <p class="lead">
-          Elige tu personaje favorito para comenzar la aventura.
-        </p>
-
-        <button class="character" data-character="bubu">
-          <img
-            src="assets/images/bubu.png"
-            alt="Elegir a Bubu"
-            style="width: 100px; height: 100px"
-          />
-        </button>
-
-        <button class="character" data-character="dudu">
-          <img
-            src="assets/images/dudu.png"
-            alt="Elegir a Dudu"
-            style="width: 100px; height: 100px"
-          />
-        </button>
-
-        <p id="character-selection" class="mt-3"></p>
-
-        <div class="mt-4 d-flex flex-column align-items-center">
-          <button class="btn btn-primary mb-2">
-            Jugar
-          </button>
-          <button class="btn btn-success mb-2">Tienda</button>
-          <button class="btn btn-secondary mb-2">Opciones</button>
-        </div>
+  <body class="menu-page">
+    <main class="menu-shell">
+      <div class="sky-layer" aria-hidden="true">
+        <span class="cloud cloud-one"></span
+        ><span class="cloud cloud-two"></span
+        ><span class="cloud cloud-three"></span>
+        <span class="mountain mountain-back"></span
+        ><span class="mountain mountain-front"></span>
+        <span class="forest forest-back"></span
+        ><span class="forest forest-front"></span>
       </div>
-    </div>
+      <section class="menu-card" aria-labelledby="game-title">
+        <header class="menu-header">
+          <p class="eyebrow">Una aventura para dos ositos</p>
+          <h1 id="game-title">
+            Bubu <span>&amp;</span> Dudu <small>Al Rescate</small>
+          </h1>
+          <p class="intro">Bubu y Dudu han sido separados por una fuerza misteriosa. Elige a tu personaje, supera los desafíos y rescata a tu pareja.</p>
+          <p class="coin-balance" aria-label="Monedas acumuladas">
+            <span aria-hidden="true">✦</span>
+            <strong id="coin-balance">0</strong> monedas
+          </p>
+        </header>
+        <section class="character-picker" aria-label="Elige tu personaje">
+          <button
+            class="character-card"
+            type="button"
+            data-character="bubu"
+            aria-pressed="false"
+          >
+            <span class="card-sparkle">✦</span
+            ><span class="portrait"
+              ><img
+                src="/assets/characters/bubu/idle.png"
+                data-static-src="/assets/characters/bubu/idle.png"
+                alt="Bubu, oso panda blanco" /></span
+            ><span class="character-copy"
+              ><strong>Bubu</strong><small>Oso panda blanco</small></span
+            >
+          </button>
+          <button
+            class="character-card"
+            type="button"
+            data-character="dudu"
+            aria-pressed="false"
+            disabled
+          >
+            <span class="card-sparkle">✦</span
+            ><span class="portrait"
+              ><img
+                src="/assets/images/dudu.png"
+                data-static-src="/assets/images/dudu.png"
+                data-gif-src="/assets/images/dudu.gif"
+                alt="Dudu, oso marrón" /></span
+            ><span class="character-copy"
+              ><strong>Dudu</strong><small>Próximamente</small></span
+            >
+          </button>
+        </section>
+        <p
+          id="character-selection"
+          class="selection-message"
+          aria-live="polite"
+        >
+          Selecciona a Bubu o Dudu para comenzar.
+        </p>
+        <div class="menu-actions">
+          <button id="play-button" class="button button-play" type="button">
+            JUGAR <span aria-hidden="true">➜</span>
+          </button>
+          <div class="secondary-actions">
+            <button
+              class="button button-secondary"
+              type="button"
+              data-dialog="shop-dialog"
+            >
+              Tienda</button
+            ><button
+              class="button button-secondary"
+              type="button"
+              data-dialog="options-dialog"
+            >
+              Opciones
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+    <dialog id="shop-dialog" class="info-dialog">
+      <button class="dialog-close" type="button" aria-label="Cerrar">×</button
+      ><span class="dialog-icon">🧺</span>
+      <h2>La tienda abrirá pronto</h2>
+      <p>
+        Las monedas que consigas quedarán guardadas para ropa y accesorios en
+        una próxima aventura.
+      </p>
+    </dialog>
+    <dialog id="options-dialog" class="info-dialog">
+      <button class="dialog-close" type="button" aria-label="Cerrar">×</button
+      ><span class="dialog-icon">⚙️</span>
+      <h2>Opciones</h2>
+      <p>
+        El juego se adapta a tu pantalla. En el nivel puedes pausar con
+        <kbd>Esc</kbd> y jugar con teclado o botones táctiles.
+      </p>
+    </dialog>
+    <script type="module" src="/assets/js/main.js"></script>
   </body>
-  <script
-    src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-    integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
-    crossorigin="anonymous"
-  ></script>
-  <script
-    src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-    crossorigin="anonymous"
-  ></script>
-  <script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js"
-    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
-    crossorigin="anonymous"
-  ></script>
-  <script src="assets/js/main.js"></script>
 </html>

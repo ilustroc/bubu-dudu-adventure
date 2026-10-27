@@ -2,138 +2,17 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#91dcf4" />
     <title>Nivel 1 | Bubu &amp; Dudu al Rescate</title>
-    <style>
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        min-height: 100vh;
-        margin: 0;
-        padding: 24px;
-        display: grid;
-        place-items: center;
-        color: #382d48;
-        font-family:
-          system-ui,
-          -apple-system,
-          "Segoe UI",
-          sans-serif;
-        background: linear-gradient(#c9efff 0 66%, #a9df9b 66%);
-      }
-      main {
-        width: min(760px, 100%);
-        overflow: hidden;
-        text-align: center;
-        background: #fff;
-        border: 4px solid #fff;
-        border-radius: 24px;
-        box-shadow: 0 14px 40px #42627b33;
-      }
-      header {
-        padding: 24px 20px 16px;
-      }
-      h1 {
-        margin: 0;
-        color: #674bb0;
-        font-size: clamp(1.7rem, 5vw, 2.4rem);
-      }
-      header p {
-        margin: 8px 0 0;
-      }
-      .scene {
-        min-height: 300px;
-        display: grid;
-        place-items: center;
-        background: linear-gradient(#a9e6ff 0 72%, #83d485 72%);
-      }
-      #player-character {
-        width: 190px;
-        height: 190px;
-        object-fit: contain;
-        filter: drop-shadow(0 10px 5px #255b3033);
-        animation: appear 450ms ease-out;
-      }
-      #welcome {
-        margin: 20px 12px 8px;
-        font-size: 1.1rem;
-      }
-      .back {
-        display: inline-block;
-        margin: 8px 0 24px;
-        padding: 10px 20px;
-        color: #fff;
-        font-weight: 700;
-        text-decoration: none;
-        background: #674bb0;
-        border-radius: 999px;
-      }
-      .back:hover,
-      .back:focus {
-        background: #503694;
-      }
-      @keyframes appear {
-        from {
-          opacity: 0;
-          transform: translateY(14px) scale(0.92);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        #player-character {
-          animation: none;
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="/src/game/game.css" />
   </head>
-  <body>
-    <main>
-      <header>
-        <h1>Nivel 1: ¡Comienza la aventura!</h1>
-      </header>
-      <section class="scene" aria-label="Escenario del nivel 1">
-        <img id="player-character" src="" alt="Personaje del jugador" />
-      </section>
-      <p id="welcome" aria-live="polite">¡Vamos a jugar!</p>
-      <a class="back" href="../index.html">Volver al inicio</a>
+  <body class="game-page">
+    <main class="game-shell">
+      <div id="game-container" aria-label="Nivel 1: El bosque encantado"></div>
+      <div id="touch-controls" class="touch-controls" aria-label="Controles táctiles"><div class="touch-pad"><button type="button" data-control="left" aria-label="Mover a la izquierda">◀</button><button type="button" data-control="right" aria-label="Mover a la derecha">▶</button></div><button type="button" class="jump-button" data-control="jump" aria-label="Saltar">↑<small>SALTAR</small></button></div>
+      <div id="game-modal" class="game-modal" hidden><section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title"><span id="modal-icon" class="modal-icon">✦</span><h1 id="modal-title">Pausa</h1><p id="modal-copy"></p><div id="modal-actions" class="modal-actions"></div></section></div>
     </main>
-    <script>
-      const validCharacters = ["bubu", "dudu"];
-      const query = new URLSearchParams(window.location.search);
-      let character =
-        query.get("character") ||
-        query.get("selectedCharacterKey") ||
-        query.get("selectedCharacter");
-
-      if (!validCharacters.includes(character)) {
-        for (const key of [
-          "selectedCharacter",
-          "selectedCharacterKey",
-          "character",
-          "personajeSeleccionado",
-        ]) {
-          try {
-            const saved =
-              localStorage.getItem(key) || sessionStorage.getItem(key);
-            if (validCharacters.includes(saved)) {
-              character = saved;
-              break;
-            }
-          } catch {}
-        }
-      }
-
-      if (!validCharacters.includes(character)) character = "bubu";
-      const characterName = character === "bubu" ? "Bubu" : "Dudu";
-      const playerImage = document.getElementById("player-character");
-      playerImage.src = `../assets/images/${character}.png`;
-      playerImage.alt = `${characterName}, tu personaje`;
-      document.getElementById("welcome").textContent =
-        `¡${characterName} está listo para comenzar el nivel 1!`;
-    </script>
+    <script type="module" src="/src/game/boot.js"></script>
   </body>
 </html>
