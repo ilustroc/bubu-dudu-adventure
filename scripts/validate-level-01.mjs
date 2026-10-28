@@ -16,8 +16,54 @@ const objectBox = (object, padding = 0) => ({ left: object.x - padding, top: obj
 const overlaps = (first, second, padding = 0) => { const a = objectBox(first, padding); const b = objectBox(second, padding); return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top; };
 const objectProperty = (object, name, fallback) => object.properties?.find((property) => property.name === name)?.value ?? fallback;
 
+const requiredTilesetFields = [
+  "name",
+  "image",
+  "tilewidth",
+  "tileheight",
+  "tilecount",
+];
+const tilesets = [...map.tilesets].sort((a, b) => a.firstgid - b.firstgid);
+if (tilesets.length !== 3) fail(`se esperaban 3 tilesets y hay ${tilesets.length}`);
+for (const tileset of tilesets) {
+  if (!Number.isInteger(tileset.firstgid) || tileset.firstgid <= 0)
+    fail("tileset con firstgid inválido");
+  for (const field of ["name", "image"])
+    if (typeof tileset[field] !== "string" || !tileset[field].trim())
+      fail(`tileset ${tileset.firstgid} sin ${field}`);
+  for (const field of ["tilewidth", "tileheight", "tilecount"])
+    if (!Number.isInteger(tileset[field]) || tileset[field] <= 0)
+      fail(`tileset ${tileset.firstgid} sin ${field}`);
+}
+const expectedTilesets = [
+  [1, "kenney_pixel_platformer"],
+  [181, "forest-hills"],
+  [277, "pradera-decoraciones"],
+];
+for (const [firstgid, name] of expectedTilesets) {
+  const tileset = tilesets.find((candidate) => candidate.firstgid === firstgid);
+  if (!tileset || tileset.name !== name)
+    fail(`tileset ${firstgid}:${name} no está definido correctamente`);
+}
+const validGid = (gid) => {
+  if (!gid) return true;
+  const rawGid = gid & 0x1fffffff;
+  return tilesets.some((tileset, index) => {
+    const nextFirstgid = tilesets[index + 1]?.firstgid;
+    const lastgid = nextFirstgid
+      ? nextFirstgid - 1
+      : tileset.firstgid + tileset.tilecount - 1;
+    return rawGid >= tileset.firstgid && rawGid <= lastgid;
+  });
+};
+
 for (const name of ["Background", "Ground", "Platforms", "Decorations", "Coins", "Enemies", "Hazards", "Checkpoints", "Spawn_Exit"]) {
   if (!getLayer(name)) fail(`falta la capa ${name}`);
+}
+for (const layer of map.layers.filter((layer) => layer.type === "tilelayer")) {
+  const invalidGid = layer.data.find((gid) => !validGid(gid));
+  if (invalidGid !== undefined)
+    fail(`GID ${invalidGid} inválido en la capa ${layer.name}`);
 }
 
 const ground = getLayer("Ground");

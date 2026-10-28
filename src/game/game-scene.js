@@ -108,8 +108,18 @@ export class ForestScene extends Phaser.Scene {
     this.praderaTileset = this.map.addTilesetImage(
       "pradera-decoraciones",
       "praderaDecor",
-      18, 18, 0, 0
+      18, 18, 0, 0,
     );
+    this.levelTilesets = [
+      this.tileset,
+      this.vegetationTileset,
+      this.praderaTileset,
+    ];
+    if (this.levelTilesets.some((tileset) => !tileset)) {
+      throw new Error(
+        "No se pudo registrar uno de los tilesets de level_01: revisa los metadatos exportados por Tiled.",
+      );
+    }
     this.level = {
       id: "level1",
       width: this.map.width * TILE,
@@ -134,7 +144,7 @@ export class ForestScene extends Phaser.Scene {
       ["ForegroundVegetation", 8],
     ].forEach(([name, depth]) => {
       const layer = this.map
-        .createLayer(name, [this.tileset, this.vegetationTileset, this.praderaTileset], 0, 0)
+        .createLayer(name, this.levelTilesets, 0, 0)
         .setScale(MAP_SCALE)
         .setDepth(depth);
       this.mapLayers[name] = layer;
