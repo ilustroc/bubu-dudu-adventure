@@ -177,11 +177,14 @@ body.game-page {
     height: 64px;
   }
 }
-.test-reset {
+.qa-controls {
   position: absolute;
   z-index: 7;
   top: 12px;
   right: 62px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   border: 2px solid #fff;
   border-radius: 10px;
   padding: 7px 10px;
@@ -191,6 +194,17 @@ body.game-page {
   font:
     700 12px "Trebuchet MS",
     sans-serif;
+}
+.qa-controls[hidden] {
+  display: none;
+}
+.qa-controls button {
+  border: 0;
+  border-radius: 7px;
+  padding: 4px 6px;
+  color: #513b7c;
+  background: #fff;
+  font: inherit;
   cursor: pointer;
 }
 .game-hud {

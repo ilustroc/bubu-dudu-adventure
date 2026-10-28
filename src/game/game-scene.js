@@ -21,7 +21,8 @@ const KENNEY = {
   dirt: 40,
   cactus: 127,
   coin: 151,
-  portal: 130,
+  doorTop: 110,
+  doorBottom: 130,
   slime: 0,
   patroller: 6,
 };
@@ -34,7 +35,7 @@ export class ForestScene extends Phaser.Scene {
   preload() {
     this.load.spritesheet(
       "bubu-idle",
-      "/assets/characters/bubu/normalized/idle.png",
+      "/assets/characters/bubu/idle.png",
       { frameWidth: 64, frameHeight: 64 },
     );
     this.load.spritesheet("bubu-run", "/assets/characters/bubu/run.png", {
@@ -86,7 +87,7 @@ export class ForestScene extends Phaser.Scene {
     }
     this.testMode = query.get("test") === "1";
     this.character = "bubu";
-    saveSelectedCharacter(this.character);
+    if (!this.testMode) saveSelectedCharacter(this.character);
     this.map = this.make.tilemap({ key: "level01" });
     this.tileset = this.map.addTilesetImage(
       "kenney_pixel_platformer",
@@ -120,6 +121,7 @@ export class ForestScene extends Phaser.Scene {
     );
     this.mapLayers.Ground.setCollisionByExclusion([-1]);
     this.mapLayers.Platforms.setCollisionByExclusion([-1]);
+    this.fallTriggerY = this.getFallTriggerY();
     this.validateMapLayout();
     const spawn = this.getMapObject("Spawn_Exit", "spawn");
     this.spawnPoint = this.objectPoint(spawn);
@@ -341,24 +343,31 @@ export class ForestScene extends Phaser.Scene {
     this.checkpoint.body.setSize(20, 38).setOffset(8, 7);
     this.checkpoint.play("flag-off-wave");
     const exit = this.getMapObject("Spawn_Exit", "exit");
-    const exitPoint = this.objectPoint(exit);
-    this.portal = this.physics.add
-      .image(exitPoint.x, exitPoint.y, "kenneyTiles", KENNEY.portal)
-      .setScale(3.3)
-      .setDepth(4);
-    this.portal.body.setAllowGravity(false).setImmovable(true);
-    this.tweens.add({
-      targets: this.portal,
-      scaleY: 3.55,
-      scaleX: 3.1,
-      duration: 800,
-      yoyo: true,
-      repeat: -1,
-    });
+    this.exitPoint = this.objectPoint(exit);
+    const doorBaseY = this.exitPoint.y + TILE / 2;
+    this.door = {
+      top: this.add
+        .image(this.exitPoint.x, doorBaseY - TILE, "kenneyTiles", KENNEY.doorTop)
+        .setOrigin(0.5, 1)
+        .setScale(MAP_SCALE)
+        .setDepth(4),
+      bottom: this.add
+        .image(this.exitPoint.x, doorBaseY, "kenneyTiles", KENNEY.doorBottom)
+        .setOrigin(0.5, 1)
+        .setScale(MAP_SCALE)
+        .setDepth(4),
+    };
+    this.exitTrigger = this.add.zone(
+      this.exitPoint.x,
+      this.exitPoint.y,
+      TILE * 0.9,
+      TILE * 1.25,
+    );
+    this.physics.add.existing(this.exitTrigger, true);
     this.physics.add.overlap(this.player.sprite, this.checkpoint, () =>
       this.activateCheckpoint(),
     );
-    this.physics.add.overlap(this.player.sprite, this.portal, () =>
+    this.physics.add.overlap(this.player.sprite, this.exitTrigger, () =>
       this.finishLevel(),
     );
   }
@@ -413,6 +422,14 @@ export class ForestScene extends Phaser.Scene {
       fallback
     );
   }
+  getFallTriggerY() {
+    const ground = this.mapLayers.Ground;
+    let surfaceRow = this.map.height;
+    ground.forEachTile((tile) => {
+      if (tile.index >= 0) surfaceRow = Math.min(surfaceRow, tile.y);
+    });
+    return (surfaceRow + 1) * TILE;
+  }
   validateMapLayout() {
     const maxJumpHeight = 620 ** 2 / (2 * 1000);
     const maxJumpDistance = 265 * ((2 * 620) / 1000);
@@ -456,7 +473,7 @@ export class ForestScene extends Phaser.Scene {
     if (this.paused || this.ended || this.dying) return;
     this.player.update(this.keys, this.touch);
     this.enemies.children.each((enemy) => this.updateEnemyPatrol(enemy));
-    if (this.player.sprite.body.top > this.deathY) this.damagePlayer("fall");
+    if (this.player.sprite.body.top > this.fallTriggerY) this.resolvePitFall();
   }
 
   hasFloorAhead(enemy, direction) {
@@ -495,9 +512,33 @@ export class ForestScene extends Phaser.Scene {
 
   createTestControls() {
     if (!this.testMode) return;
-    const reset = document.querySelector("#test-reset");
-    reset.hidden = false;
-    reset.addEventListener("click", () => window.location.reload());
+    const controls = document.querySelector("#qa-controls");
+    controls.hidden = false;
+    document.querySelector("#test-reset").addEventListener("click", () =>
+      window.location.reload(),
+    );
+    document.querySelector("#qa-portal").addEventListener("click", () =>
+      this.moveToQaPortal(),
+    );
+    document.querySelector("#qa-victory").addEventListener("click", () =>
+      this.finishLevel(),
+    );
+    document.querySelector("#qa-fall").addEventListener("click", () =>
+      this.simulateQaFall(),
+    );
+  }
+
+  moveToQaPortal() {
+    if (this.ended || this.dying) return;
+    this.player.respawn({ x: this.exitPoint.x - TILE * 1.6, y: this.exitPoint.y });
+    this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
+  }
+
+  simulateQaFall() {
+    if (this.ended || this.dying) return;
+    this.player.sprite.setPosition(this.spawnPoint.x + TILE * 4, this.fallTriggerY - 10);
+    this.player.sprite.body.setVelocity(0, 260);
+    this.resolvePitFall();
   }
 
   pickCoin(coin) {
@@ -590,10 +631,6 @@ export class ForestScene extends Phaser.Scene {
     const spawn = this.checkpointActive
       ? this.checkpointPoint
       : this.spawnPoint;
-    // A fall is resolved at a safe spot before Hurt/Cry plays, so the visual
-    // feedback is never hidden under the map.
-    if (reason === "fall")
-      this.player.sprite.setPosition(spawn.x, spawn.y - 25);
     if (this.lives <= 0) {
       this.player.sprite.setPosition(spawn.x, spawn.y);
       this.player.playSad(() => {
@@ -613,6 +650,33 @@ export class ForestScene extends Phaser.Scene {
       return;
     }
     this.player.takeHit(() => {
+      this.player.respawn(spawn);
+      this.dying = false;
+    });
+  }
+
+  resolvePitFall() {
+    if (this.player.invulnerable || this.ended || this.dying) return;
+    this.dying = true;
+    this.lives -= 1;
+    this.ui.update(this.runCoins, this.lives, this.coins.countActive(true));
+    const spawn = this.checkpointActive ? this.checkpointPoint : this.spawnPoint;
+    this.player.recoverFromPit(() => {
+      if (this.lives <= 0) {
+        this.player.sprite.setPosition(spawn.x, spawn.y);
+        this.player.playSad(() => {
+          this.ended = true;
+          this.dying = false;
+          this.physics.pause();
+          this.showModal(
+            "💧",
+            "Game Over",
+            "Bubu necesita descansar. ¡Inténtalo otra vez desde el comienzo!",
+            [["Reintentar", () => window.location.reload()], ["Volver al menú", () => window.location.assign("/")]],
+          );
+        });
+        return;
+      }
       this.player.respawn(spawn);
       this.dying = false;
     });
@@ -644,7 +708,8 @@ export class ForestScene extends Phaser.Scene {
   finishLevel() {
     if (this.ended || this.dying) return;
     this.ended = true;
-    completeLevel(this.level.id);
+    if (!this.testMode) completeLevel(this.level.id);
+    const safePoint = { x: this.exitPoint.x - TILE * 0.9, y: this.player.sprite.y };
     this.player.playVictory(() => {
       this.physics.pause();
       this.cameras.main.flash(500, 255, 248, 195);
@@ -657,7 +722,7 @@ export class ForestScene extends Phaser.Scene {
           ["Volver al menú", () => window.location.assign("/")],
         ],
       );
-    });
+    }, safePoint);
   }
   showModal(icon, title, copy, actions) {
     const modal = document.querySelector("#game-modal");

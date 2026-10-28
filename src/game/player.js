@@ -127,6 +127,14 @@ export class Player {
     this.play("idle-side", true);
   }
 
+  recoverFromPit(onComplete) {
+    this.locked = true;
+    this.invulnerable = true;
+    this.sprite.body.setVelocityX(0);
+    this.play("fall");
+    this.scene.time.delayedCall(460, onComplete);
+  }
+
   takeHit(onComplete) {
     this.locked = true;
     this.invulnerable = true;
@@ -147,9 +155,11 @@ export class Player {
     this.sprite.once("animationcomplete-bubu-cry", onComplete);
   }
 
-  playVictory(onComplete) {
+  playVictory(onComplete, safePoint) {
     this.locked = true;
     this.sprite.body.setAllowGravity(false).setVelocity(0, 0);
+    if (safePoint) this.sprite.setPosition(safePoint.x, safePoint.y);
+    this.sprite.setDepth(7);
     this.play("victory", true);
     this.sprite.once("animationcomplete-bubu-victory", () => {
       this.scene.time.delayedCall(550, onComplete);

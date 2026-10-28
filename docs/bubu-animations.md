@@ -1,6 +1,6 @@
 # Animaciones oficiales de Bubu
 
-Los sprites de Bubu se mantienen directamente en `public/assets/characters/bubu/`. `normalized/idle.png` es un recurso estático heredado para el idle; no requiere ningún proceso automático.
+Los sprites de Bubu se mantienen directamente en `public/assets/characters/bubu/`. `idle.png` es el recurso de 64×64 usado por Phaser; `idle-original.png` conserva la fuente de alta resolución.
 
 | Estado | Fuente | Rejilla / fotogramas | FPS | Regla |
 | --- | --- | --- | --- | --- |
