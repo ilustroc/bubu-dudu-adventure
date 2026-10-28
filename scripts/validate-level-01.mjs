@@ -62,5 +62,33 @@ for (const [label, marker] of [["spawn", spawn], ["checkpoint", checkpoint], ["s
   if (!solidAt(x, y)) fail(`${label} no tiene suelo seguro`);
   if (hazards.some((hazard) => overlaps(marker, hazard, 8)) || enemies.some((enemy) => overlaps(marker, enemy, 8))) fail(`${label} se superpone con un peligro`);
 }
+for (const name of ["BackgroundVegetation", "ForegroundVegetation"]) {
+  const layer = getLayer(name);
+  if (!layer) continue;
+  const seen = new Set();
+  for (let y = 0; y < map.height; y += 1) {
+    for (let x = 0; x < map.width; x += 1) {
+      if (getTile(layer, x, y) <= 0 || seen.has(`${x},${y}`)) continue;
+      const stack = [[x, y]];
+      const cells = [];
+      seen.add(`${x},${y}`);
+      while (stack.length) {
+        const [cx, cy] = stack.pop();
+        cells.push([cx, cy]);
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nx = cx + dx;
+          const ny = cy + dy;
+          if (nx < 0 || ny < 0 || nx >= map.width || ny >= map.height) continue;
+          if (seen.has(`${nx},${ny}`) || getTile(layer, nx, ny) <= 0) continue;
+          seen.add(`${nx},${ny}`);
+          stack.push([nx, ny]);
+        }
+      }
+      if (!cells.some(([cx, cy]) => solidAt(cx, cy + 1))) {
+        fail(`vegetación sin apoyo en ${name} (${x},${y})`);
+      }
+    }
+  }
+}
 if (maxHeight < 162) fail("la altura de salto configurada es insuficiente para la ruta superior");
 console.log(`level_01 válido: salto ${Math.round(maxHeight)}px, alcance ${Math.round(maxDistance)}px, ${coins.length} monedas, ${enemies.length} enemigos y ${hazards.length} cactus.`);

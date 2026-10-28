@@ -1,29 +1,46 @@
 # Arte del Nivel 1
 
-El Nivel 1 conserva sus capas y objetos de Tiled sin cambios. Las capas de
-escenario se crean como arte no colisionable en `ForestScene`:
+El panorama `assets/levels/level1/forest-parallax.png` se mantiene intacto como
+fondo (`SkyBackground`, parallax 0.025); los árboles y montañas dibujados dentro
+del panorama siguen formando parte de esa imagen.
 
-| Capa | Recurso / uso | Parallax |
+La vegetación independiente vive en dos capas de tiles editables desde Tiled:
+
+| Capa | Profundidad | Contenido |
 | --- | --- | --- |
-| `SkyBackground` | `assets/levels/level1/forest-parallax.png` | 0.025 |
-| `FarHills` | banda rasterizada del mismo panorama | 0.08 |
-| `NearHills` | banda rasterizada del mismo panorama | 0.18 |
-| `BackgroundDecorations` | `forest-hills.png`, vegetación suave | 0.36 |
-| `ForegroundDecorations` | `forest-hills.png`, borde de césped | 0.65 |
+| `BackgroundVegetation` | 1 (detrás de Bubu) | árboles multitile de Kenney y arbustos de `forest-hills` |
+| `ForegroundVegetation` | 8 (delante de Bubu) | brotes, helechos, pinos y arbustos pequeños |
 
-El panorama es una ilustración original generada localmente para el proyecto;
-no se descarga en tiempo de ejecución. Los sprites de árboles, brotes,
-monedas, puertas y hongos proceden del paquete local Kenney Pixel Platformer
-(CC0). Ninguna de estas capas recibe un cuerpo de Arcade Physics.
+Ambas capas usan los dos tilesets del mapa: `kenney_pixel_platformer`
+(`firstgid` 1) y `forest-hills` (`firstgid` 181). No reciben cuerpo de Arcade
+Physics, así que se pueden atravesar. `createWorldDecorations()` ya no existe:
+Phaser dibuja exactamente los tiles guardados en `level_01.json`.
+
+El panorama es una ilustración original generada localmente; los sprites de
+árboles, brotes, monedas, puertas y hongos proceden del paquete local Kenney
+Pixel Platformer (CC0).
+
+## Cómo editar la vegetación en Tiled
+
+1. Abrir `assets/maps/level_01.tmx` con Tiled 1.10 o superior.
+2. Seleccionar `BackgroundVegetation` o `ForegroundVegetation` en el panel de
+   capas.
+3. Elegir el tileset de Kenney o `forest-hills` y pintar con el sello.
+4. Para un árbol grande, pintar o copiar la estructura multitile de 3×5: copa
+   `17/18/19`, `37/38/39`, `57/97/59` y tronco `116/137` (índices locales de
+   Kenney). También se puede convertir en objeto de tile si se prefiere.
+5. Apoyar siempre la base sobre `Ground` o `Platforms`; no pintar vegetación
+   sobre un precipicio. `npm run validate:level` detecta grupos flotantes.
+6. Guardar el TMX y exportarlo a JSON (`level_01.json`) para que Phaser muestre
+   los cambios.
 
 ## Tileset de colinas
 
-`assets/levels/level1/tilesets/forest-hills.png` usa una cuadrícula de
-12×8 tiles de 18×18 px. `forest-hills.tsx` permite abrirlo desde Tiled como un
+`assets/levels/level1/tilesets/forest-hills.png` usa una cuadrícula de 12×8
+tiles de 18×18 px. `forest-hills.tsx` permite abrirlo desde Tiled como un
 tileset independiente. Incluye caps de césped, pendientes, rellenos de tierra
-sin bordes oscuros repetidos, pequeñas plataformas y arbustos. Es una fuente
-para futuras capas de fondo y no sustituye todavía el terreno colisionable del
-mapa existente.
+sin bordes oscuros repetidos, pequeñas plataformas y arbustos con flores; en el
+Nivel 1 se usa para los arbustos de ambas capas de vegetación.
 
 ## Escala visual
 

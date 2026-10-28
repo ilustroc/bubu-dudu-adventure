@@ -1,16 +1,13 @@
 import Phaser from "phaser";
-import { PLAYER_TIMING, Player } from "./player.js";
+import { Player } from "./player.js";
 import { TouchInput } from "./touch-input.js";
 import { GameUi } from "./ui.js";
 import {
   collectCoin,
   completeLevel,
-  getProgress,
   saveSelectedCharacter,
 } from "../shared/progress.js";
 import tilesheet from "../../assets/external/kenney_pixel-platformer/Tilemap/tilemap_packed.png";
-import backgrounds from "../../assets/external/kenney_pixel-platformer/Tilemap/tilemap-backgrounds_packed.png";
-import characters from "../../assets/external/kenney_pixel-platformer/Tilemap/tilemap-characters_packed.png";
 import forestHills from "../../assets/levels/level1/tilesets/forest-hills.png";
 import forestParallax from "../../assets/levels/level1/forest-parallax.png";
 import levelMapUrl from "../../assets/maps/level_01.json?url";
@@ -18,8 +15,6 @@ import levelMapUrl from "../../assets/maps/level_01.json?url";
 const TILE = 54;
 const MAP_SCALE = 3;
 const KENNEY = {
-  grass: 0,
-  dirt: 40,
   cactus: 127,
   coin: 151,
   forestMushroom: 128,
@@ -65,14 +60,6 @@ export class ForestScene extends Phaser.Scene {
       frameWidth: 18,
       frameHeight: 18,
     });
-    this.load.spritesheet("kenneyBackgrounds", backgrounds, {
-      frameWidth: 24,
-      frameHeight: 24,
-    });
-    this.load.spritesheet("kenneyCharacters", characters, {
-      frameWidth: 24,
-      frameHeight: 24,
-    });
     this.load.spritesheet("forestHills", forestHills, {
       frameWidth: 18,
       frameHeight: 18,
@@ -105,6 +92,14 @@ export class ForestScene extends Phaser.Scene {
       0,
       0,
     );
+    this.vegetationTileset = this.map.addTilesetImage(
+      "forest-hills",
+      "forestHills",
+      18,
+      18,
+      0,
+      0,
+    );
     this.level = {
       id: "level1",
       width: this.map.width * TILE,
@@ -118,17 +113,22 @@ export class ForestScene extends Phaser.Scene {
     this.configureCamera();
     this.createScenery();
     this.mapLayers = {};
-    ["Background", "Ground", "Platforms", "Decorations"].forEach(
-      (name, index) => {
-        const layer = this.map
-          .createLayer(name, this.tileset, 0, 0)
-          .setScale(MAP_SCALE)
-          // Tiled's Background remains available to artists, but the new
-          // parallax panorama sits above its solid color tiles.
-          .setDepth(index === 0 ? -31 : index + 1);
-        this.mapLayers[name] = layer;
-      },
-    );
+    [
+      // Tiled's Background remains available to artists, but the parallax
+      // panorama sits above its solid color tiles.
+      ["Background", -31],
+      ["BackgroundVegetation", 1],
+      ["Ground", 2],
+      ["Platforms", 3],
+      ["Decorations", 4],
+      ["ForegroundVegetation", 8],
+    ].forEach(([name, depth]) => {
+      const layer = this.map
+        .createLayer(name, [this.tileset, this.vegetationTileset], 0, 0)
+        .setScale(MAP_SCALE)
+        .setDepth(depth);
+      this.mapLayers[name] = layer;
+    });
     this.mapLayers.Ground.setCollisionByExclusion([-1]);
     this.createGroundExtension();
     this.mapLayers.Platforms.setCollisionByExclusion([-1]);
@@ -225,7 +225,6 @@ export class ForestScene extends Phaser.Scene {
     };
 
     this.layoutScenery();
-    this.createWorldDecorations();
   }
 
   layoutScenery() {
@@ -241,7 +240,7 @@ export class ForestScene extends Phaser.Scene {
 
     const scale = Math.max(
       visibleWidth / texture.width,
-      visibleHeight / texture.height
+      (visibleHeight + TILE * 4) / texture.height
     );
 
     // Mantener proporciones y cubrir toda la pantalla.
@@ -313,37 +312,6 @@ export class ForestScene extends Phaser.Scene {
           start = x;
         }
       }
-    }
-  }
-
-  createWorldDecorations() {
-    // All scenery uses Kenney tiles; it never receives an Arcade body.
-    const protectedMarkers = [
-      this.getMapObject("Spawn_Exit", "spawn"),
-      this.getMapObject("Checkpoints", "checkpoint"),
-      this.getMapObject("Spawn_Exit", "exit"),
-    ].map((marker) => this.objectPoint(marker).x);
-    const canDecorateAt = (x) =>
-      protectedMarkers.every((markerX) => Math.abs(markerX - x) > 126);
-    for (let x = 360; x < this.level.width - 180; x += 756) {
-      if (!canDecorateAt(x)) continue;
-      this.add
-        .image(x, 594, "kenneyTiles", 126)
-        .setOrigin(0.5, 1)
-        .setScale(5)
-        .setDepth(-3)
-        .setAlpha(0.82);
-    }
-    const decorationFrames = [124, 125, 126, 124, 125];
-    for (let x = 270; x < this.level.width - 120; x += 324) {
-      if (!canDecorateAt(x)) continue;
-      const frame = decorationFrames[Math.floor(x / 324) % decorationFrames.length];
-      this.add
-        .image(x, 594, "kenneyTiles", frame)
-        .setOrigin(0.5, 1)
-        .setScale(frame === 126 ? 2.8 : 2.5)
-        .setDepth(3)
-        .setAlpha(0.92);
     }
   }
 
