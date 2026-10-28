@@ -5,17 +5,34 @@ const BUBU = {
   jumpSpeed: 620,
 };
 
+// Kept together so visual pacing can be tuned without altering Arcade physics.
+export const ANIMATION_FPS = Object.freeze({
+  idle: 1,
+  run: 9,
+  jump: 11,
+  fall: 10,
+  hurt: 18,
+  cry: 10,
+  victory: 8,
+});
+
+export const PLAYER_TIMING = Object.freeze({
+  pitFallMs: 800,
+  victoryPauseMs: 240,
+  doorEntryMs: 430,
+});
+
 // The short side-facing idle comes from the run sheet, so stopping never
 // swaps Bubu's silhouette or foot placement. The front-facing approved idle
 // is intentionally reserved for a deliberate, longer wait pose.
 const ANIMATIONS = [
-  ["idle-side", "bubu-run", 0, 0, 1, -1],
-  ["idle-long", "bubu-idle", 0, 0, 1, -1],
-  ["run", "bubu-run", 0, 15, 12, -1],
-  ["jump", "bubu-jump", 0, 15, 16, 0],
-  ["fall", "bubu-fall", 0, 15, 12, -1],
-  ["hurt", "bubu-hurt", 0, 16, 18, 0],
-  ["cry", "bubu-cry", 0, 15, 10, 0],
+  ["idle-side", "bubu-run", 0, 0, ANIMATION_FPS.idle, -1],
+  ["idle-long", "bubu-idle", 0, 0, ANIMATION_FPS.idle, -1],
+  ["run", "bubu-run", 0, 15, ANIMATION_FPS.run, -1],
+  ["jump", "bubu-jump", 0, 15, ANIMATION_FPS.jump, 0],
+  ["fall", "bubu-fall", 0, 15, ANIMATION_FPS.fall, -1],
+  ["hurt", "bubu-hurt", 0, 16, ANIMATION_FPS.hurt, 0],
+  ["cry", "bubu-cry", 0, 15, ANIMATION_FPS.cry, 0],
 ];
 
 export class Player {
@@ -23,8 +40,13 @@ export class Player {
     this.scene = scene;
     this.character = character;
     this.createAnimations();
-    this.sprite = scene.physics.add.sprite(x, y, "bubu-run", 0).setScale(BUBU.scale).setDepth(4);
-    this.sprite.body.setSize(BUBU.body.width, BUBU.body.height).setOffset(BUBU.body.offsetX, BUBU.body.offsetY);
+    this.sprite = scene.physics.add
+      .sprite(x, y, "bubu-run", 0)
+      .setScale(BUBU.scale)
+      .setDepth(4);
+    this.sprite.body
+      .setSize(BUBU.body.width, BUBU.body.height)
+      .setOffset(BUBU.body.offsetX, BUBU.body.offsetY);
     // World bounds would catch Bubu at the bottom. Horizontal bounds are kept
     // manually so every real gap can reach the kill zone below the map.
     this.sprite.setCollideWorldBounds(false);
@@ -41,7 +63,15 @@ export class Player {
     ANIMATIONS.forEach(([state, texture, start, end, frameRate, repeat]) => {
       const key = `bubu-${state}`;
       if (!this.scene.anims.exists(key)) {
-        this.scene.anims.create({ key, frames: this.scene.anims.generateFrameNumbers(texture, { start, end }), frameRate, repeat });
+        this.scene.anims.create({
+          key,
+          frames: this.scene.anims.generateFrameNumbers(texture, {
+            start,
+            end,
+          }),
+          frameRate,
+          repeat,
+        });
       }
     });
     if (!this.scene.anims.exists("bubu-victory")) {
@@ -51,7 +81,7 @@ export class Player {
           start: 0,
           end: 19,
         }),
-        frameRate: 8,
+        frameRate: ANIMATION_FPS.victory,
         repeat: 0,
       });
     }
@@ -77,7 +107,8 @@ export class Player {
     }
 
     const onGround = body.blocked.down || body.touching.down;
-    const jumpDown = keys.up.isDown || keys.w.isDown || keys.space.isDown || touch.jump;
+    const jumpDown =
+      keys.up.isDown || keys.w.isDown || keys.space.isDown || touch.jump;
     if (jumpDown && !this.jumpWasDown && onGround) {
       body.setVelocityY(-BUBU.jumpSpeed);
       this.play("jump", true);
@@ -119,20 +150,38 @@ export class Player {
   }
 
   respawn(point) {
+    this.pitTween?.stop();
     this.locked = false;
     this.invulnerable = false;
-    this.sprite.setPosition(point.x, point.y).setAngle(0).setScale(BUBU.scale).setAlpha(1).clearTint();
+    this.sprite
+      .setPosition(point.x, point.y)
+      .setAngle(0)
+      .setScale(BUBU.scale)
+      .setAlpha(1)
+      .clearTint();
     this.sprite.body.setAllowGravity(true).setVelocity(0, 0);
     this.idleSince = this.scene.time.now;
     this.play("idle-side", true);
   }
 
-  recoverFromPit(onComplete) {
+  recoverFromPit(onComplete, onDisappear) {
     this.locked = true;
     this.invulnerable = true;
-    this.sprite.body.setVelocityX(0);
-    this.play("fall");
-    this.scene.time.delayedCall(460, onComplete);
+    this.sprite.body.setAllowGravity(false).setVelocity(0, 0);
+    this.play("fall", true);
+    this.pitTween?.stop();
+    this.pitTween = this.scene.tweens.add({
+      targets: this.sprite,
+      y: this.sprite.y + 130,
+      alpha: 0,
+      duration: PLAYER_TIMING.pitFallMs,
+      ease: "Quad.easeIn",
+      onComplete: () => {
+        this.pitTween = null;
+        onDisappear?.(this.sprite.x, this.sprite.y);
+        onComplete();
+      },
+    });
   }
 
   takeHit(onComplete) {
@@ -162,7 +211,20 @@ export class Player {
     this.sprite.setDepth(7);
     this.play("victory", true);
     this.sprite.once("animationcomplete-bubu-victory", () => {
-      this.scene.time.delayedCall(550, onComplete);
+      this.scene.time.delayedCall(PLAYER_TIMING.victoryPauseMs, onComplete);
+    });
+  }
+
+  enterDoor(target, onComplete) {
+    this.sprite.setDepth(3);
+    this.scene.tweens.add({
+      targets: this.sprite,
+      x: target.x,
+      y: target.y,
+      alpha: 0,
+      duration: PLAYER_TIMING.doorEntryMs,
+      ease: "Sine.easeIn",
+      onComplete,
     });
   }
 }

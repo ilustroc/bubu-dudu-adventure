@@ -254,3 +254,28 @@ body.game-page {
   cursor: pointer;
   text-shadow: none;
 }
+@media (max-width: 620px) {
+  .game-hud {
+    top: 12px;
+    left: 12px;
+    min-width: 0;
+  }
+  .game-hud strong {
+    font-size: 14px;
+  }
+  .game-hud span {
+    font-size: 18px;
+  }
+  .qa-controls {
+    top: 76px;
+    right: 10px;
+    left: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 5px 7px;
+  }
+  .qa-controls strong {
+    width: 100%;
+    text-align: center;
+  }
+}

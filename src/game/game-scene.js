@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Player } from "./player.js";
+import { PLAYER_TIMING, Player } from "./player.js";
 import { TouchInput } from "./touch-input.js";
 import { GameUi } from "./ui.js";
 import {
@@ -12,6 +12,8 @@ import {
 import tilesheet from "../../assets/external/kenney_pixel-platformer/Tilemap/tilemap_packed.png";
 import backgrounds from "../../assets/external/kenney_pixel-platformer/Tilemap/tilemap-backgrounds_packed.png";
 import characters from "../../assets/external/kenney_pixel-platformer/Tilemap/tilemap-characters_packed.png";
+import forestHills from "../../assets/levels/level1/tilesets/forest-hills.png";
+import forestParallax from "../../assets/levels/level1/forest-parallax.png";
 import levelMapUrl from "../../assets/maps/level_01.json?url";
 
 const TILE = 54;
@@ -23,8 +25,7 @@ const KENNEY = {
   coin: 151,
   doorTop: 110,
   doorBottom: 130,
-  slime: 0,
-  patroller: 6,
+  forestMushroom: 128,
 };
 
 export class ForestScene extends Phaser.Scene {
@@ -75,6 +76,11 @@ export class ForestScene extends Phaser.Scene {
       frameWidth: 24,
       frameHeight: 24,
     });
+    this.load.spritesheet("forestHills", forestHills, {
+      frameWidth: 18,
+      frameHeight: 18,
+    });
+    this.load.image("forestParallax", forestParallax);
     this.load.tilemapTiledJSON("level01", levelMapUrl);
   }
 
@@ -115,7 +121,9 @@ export class ForestScene extends Phaser.Scene {
         const layer = this.map
           .createLayer(name, this.tileset, 0, 0)
           .setScale(MAP_SCALE)
-          .setDepth(index === 0 ? -6 : index + 1);
+          // Tiled's Background remains available to artists, but the new
+          // parallax panorama sits above its solid color tiles.
+          .setDepth(index === 0 ? -31 : index + 1);
         this.mapLayers[name] = layer;
       },
     );
@@ -132,6 +140,8 @@ export class ForestScene extends Phaser.Scene {
       this.spawnPoint.x,
       this.spawnPoint.y,
     );
+    this.playerGroundOffset =
+      this.getSurfaceYAt(this.spawnPoint.x) - this.spawnPoint.y;
     this.physics.add.collider(this.player.sprite, [
       this.mapLayers.Ground,
       this.mapLayers.Platforms,
@@ -194,6 +204,7 @@ export class ForestScene extends Phaser.Scene {
       1.26,
     );
     this.cameras.main.setZoom(zoom);
+    this.layoutScenery?.();
     if (!this.resizeBound) {
       this.resizeBound = true;
       this.scale.on(Phaser.Scale.Events.RESIZE, () => this.configureCamera());
@@ -201,53 +212,98 @@ export class ForestScene extends Phaser.Scene {
   }
 
   createScenery() {
-    const sky = this.add
-      .rectangle(this.level.width / 2, 330, this.level.width, 760, 0xa9e8f2)
-      .setScrollFactor(0)
-      .setDepth(-20);
-    const clouds = this.add.graphics().setScrollFactor(0.08).setDepth(-18);
-    clouds.fillStyle(0xffffff, 0.72);
-    for (let x = -180; x < this.level.width + 360; x += 430) {
-      clouds.fillCircle(x, 220 + ((x / 43) % 3) * 22, 42);
-      clouds.fillCircle(x + 44, 205 + ((x / 43) % 3) * 22, 58);
-      clouds.fillCircle(x + 100, 225 + ((x / 43) % 3) * 22, 38);
-    }
-    const mountains = this.add.graphics().setScrollFactor(0.16).setDepth(-16);
-    mountains.fillStyle(0x91c9b8, 0.8);
-    for (let x = -240; x < this.level.width + 360; x += 380)
-      mountains.fillTriangle(
-        x,
-        520,
-        x + 190,
-        250 + (Math.abs(x) % 70),
-        x + 380,
-        520,
-      );
-    this.drawForestLayer(0.28, -14, 0x719d78, 390, 210, 460);
-    this.drawForestLayer(0.52, -8, 0x4e805e, 440, 250, 555);
-    const flowers = this.add.graphics().setScrollFactor(0.9).setDepth(3);
-    for (let x = 110; x < this.level.width; x += 260) {
-      flowers.fillStyle(0xffc0d0).fillRect(x, 565, 7, 7);
-      flowers.fillStyle(0xffec83).fillRect(x + 7, 565, 7, 7);
-      flowers.fillStyle(0x75b95f).fillRect(x + 4, 572, 3, 16);
-    }
+    this.scenery = {
+      SkyBackground: this.add
+        .image(0, 0, "forestParallax")
+        .setOrigin(0)
+        .setDepth(-30)
+        .setScrollFactor(0),
+      FarHills: this.add
+        .tileSprite(0, 78, 1, 1, "forestParallax")
+        .setOrigin(0)
+        .setDepth(-28)
+        .setScrollFactor(0)
+        .setAlpha(0.24),
+      NearHills: this.add
+        .tileSprite(0, 250, 1, 1, "forestParallax")
+        .setOrigin(0)
+        .setDepth(-26)
+        .setScrollFactor(0)
+        .setAlpha(0.28),
+      BackgroundDecorations: this.add
+        .tileSprite(0, 492, 1, 1, "forestHills", 36)
+        .setOrigin(0)
+        .setDepth(-4)
+        .setScrollFactor(0)
+        .setAlpha(0.8),
+      ForegroundDecorations: this.add
+        .tileSprite(0, 568, 1, 1, "forestHills", 37)
+        .setOrigin(0)
+        .setDepth(3)
+        .setScrollFactor(0)
+        .setAlpha(0.85),
+    };
+    this.layoutScenery();
+    this.createWorldDecorations();
   }
 
-  drawForestLayer(scrollFactor, depth, canopy, spacing, trunkHeight, baseY) {
-    const layer = this.add
-      .graphics()
-      .setScrollFactor(scrollFactor)
-      .setDepth(depth);
-    for (let x = -200; x < this.level.width + 300; x += spacing) {
-      const h = trunkHeight + ((x / spacing) % 3) * 24;
-      layer.fillStyle(0x765239).fillRect(x + 54, baseY - h, 22, h + 55);
-      layer.fillStyle(canopy).fillRect(x, baseY - h - 70, 130, 95);
-      layer
-        .fillStyle(
-          Phaser.Display.Color.IntegerToColor(canopy).brighten(12).color,
-        )
-        .fillRect(x + 20, baseY - h - 94, 88, 48);
-      layer.fillStyle(0x3f6b51, 0.45).fillRect(x - 18, baseY - 12, 165, 24);
+  layoutScenery() {
+    if (!this.scenery) return;
+    const camera = this.cameras.main;
+    const width = Math.ceil(this.scale.width / camera.zoom) + 144;
+    const height = Math.ceil(this.scale.height / camera.zoom) + 108;
+    const skyHeight = Math.max(height * 0.92, 520);
+    const skyWidth = Math.ceil(skyHeight * (2048 / 768));
+    this.scenery.SkyBackground.setDisplaySize(skyWidth, skyHeight).setPosition(
+      (width - skyWidth) / 2,
+      -24,
+    );
+    this.scenery.FarHills.setDisplaySize(width, Math.min(255, height * 0.48)).setPosition(-72, 92);
+    this.scenery.NearHills.setDisplaySize(width, Math.min(330, height * 0.58)).setPosition(-72, 250);
+    this.scenery.BackgroundDecorations.setDisplaySize(width, 56).setPosition(-72, 507);
+    this.scenery.ForegroundDecorations.setDisplaySize(width, 44).setPosition(-72, 570);
+  }
+
+  updateParallax() {
+    if (!this.scenery) return;
+    const scrollX = this.cameras.main.scrollX;
+    this.scenery.SkyBackground.x =
+      (this.scale.width / this.cameras.main.zoom - this.scenery.SkyBackground.displayWidth) / 2 -
+      ((scrollX * 0.025) % 70);
+    this.scenery.FarHills.tilePositionX = scrollX * 0.08;
+    this.scenery.NearHills.tilePositionX = scrollX * 0.18;
+    this.scenery.BackgroundDecorations.tilePositionX = scrollX * 0.36;
+    this.scenery.ForegroundDecorations.tilePositionX = scrollX * 0.65;
+  }
+
+  createWorldDecorations() {
+    // All scenery uses Kenney tiles; it never receives an Arcade body.
+    const protectedMarkers = [
+      this.getMapObject("Spawn_Exit", "spawn"),
+      this.getMapObject("Checkpoints", "checkpoint"),
+      this.getMapObject("Spawn_Exit", "exit"),
+    ].map((marker) => this.objectPoint(marker).x);
+    const canDecorateAt = (x) =>
+      protectedMarkers.every((markerX) => Math.abs(markerX - x) > 126);
+    for (let x = 360; x < this.level.width - 180; x += 756) {
+      if (!canDecorateAt(x)) continue;
+      this.add
+        .image(x, 594, "kenneyTiles", 126)
+        .setOrigin(0.5, 1)
+        .setScale(5)
+        .setDepth(-3)
+        .setAlpha(0.82);
+    }
+    const decorationFrames = [124, 125, 126, 124, 125];
+    for (let x = 270; x < this.level.width - 120; x += 324) {
+      if (!canDecorateAt(x)) continue;
+      const frame = decorationFrames[Math.floor(x / 324) % decorationFrames.length];
+      this.add
+        .image(x, 594, "kenneyTiles", frame)
+        .setOrigin(0.5, 1)
+        .setScale(frame === 126 ? 2.8 : 2.5)
+        .setDepth(3)
+        .setAlpha(0.92);
     }
   }
 
@@ -264,7 +320,7 @@ export class ForestScene extends Phaser.Scene {
       const point = this.objectPoint(object);
       const coin = this.coins
         .create(point.x, point.y, "kenneyTiles", KENNEY.coin)
-        .setScale(2.15)
+        .setScale(3)
         .setDepth(5);
       coin.setData("id", object.name);
       coin.body.setCircle(7, 2, 2);
@@ -288,12 +344,12 @@ export class ForestScene extends Phaser.Scene {
       const point = this.objectPoint(object);
       const type = object.type;
       const range = this.objectProperty(object, "range", 5) * TILE;
-      const frame = type === "slime" ? KENNEY.slime : KENNEY.patroller;
       const enemy = this.enemies
-        .create(point.x, point.y, "kenneyCharacters", frame)
-        .setScale(2.05)
+        .create(point.x, point.y, "kenneyTiles", KENNEY.forestMushroom)
+        .setScale(3)
         .setDepth(4)
         .setDataEnabled();
+      if (type === "patroller") enemy.setTint(0xc4df95);
       enemy.setData({
         type,
         min: point.x - range,
@@ -302,7 +358,7 @@ export class ForestScene extends Phaser.Scene {
         direction: 1,
         turnUntil: 0,
       });
-      enemy.body.setSize(17, 20).setOffset(4, 3);
+      enemy.body.setSize(14, 15).setOffset(2, 3);
       enemy.setVelocityX(enemy.getData("speed"));
     });
     this.physics.add.collider(this.enemies, [
@@ -338,24 +394,38 @@ export class ForestScene extends Phaser.Scene {
     this.checkpoint = this.physics.add
       .sprite(checkpointBase.x, checkpointBase.y + 27, "flag-off-0")
       .setOrigin(0.5, 1)
+      .setScale(1.9)
       .setDepth(5);
     this.checkpoint.body.setAllowGravity(false).setImmovable(true);
-    this.checkpoint.body.setSize(20, 38).setOffset(8, 7);
+    this.checkpoint.body.setSize(14, 20).setOffset(5, 7);
     this.checkpoint.play("flag-off-wave");
     const exit = this.getMapObject("Spawn_Exit", "exit");
     this.exitPoint = this.objectPoint(exit);
     const doorBaseY = this.exitPoint.y + TILE / 2;
+    this.createDoorOpenTextures();
     this.door = {
-      top: this.add
+      closedTop: this.add
         .image(this.exitPoint.x, doorBaseY - TILE, "kenneyTiles", KENNEY.doorTop)
         .setOrigin(0.5, 1)
         .setScale(MAP_SCALE)
         .setDepth(4),
-      bottom: this.add
+      closedBottom: this.add
         .image(this.exitPoint.x, doorBaseY, "kenneyTiles", KENNEY.doorBottom)
         .setOrigin(0.5, 1)
         .setScale(MAP_SCALE)
         .setDepth(4),
+      openTop: this.add
+        .image(this.exitPoint.x, doorBaseY - TILE, "door-open-top")
+        .setOrigin(0.5, 1)
+        .setScale(MAP_SCALE)
+        .setDepth(4)
+        .setAlpha(0),
+      openBottom: this.add
+        .image(this.exitPoint.x, doorBaseY, "door-open-bottom")
+        .setOrigin(0.5, 1)
+        .setScale(MAP_SCALE)
+        .setDepth(4)
+        .setAlpha(0),
     };
     this.exitTrigger = this.add.zone(
       this.exitPoint.x,
@@ -405,6 +475,31 @@ export class ForestScene extends Phaser.Scene {
     );
   }
 
+  createDoorOpenTextures() {
+    if (this.textures.exists("door-open-top")) return;
+    const drawFrame = (key, isTop) => {
+      const graphics = this.add.graphics();
+      const wood = 0xa66c4e;
+      const shadow = 0x6e4a43;
+      const gold = 0xe8b85e;
+      if (isTop) {
+        graphics.fillStyle(shadow).fillRect(1, 2, 16, 4);
+        graphics.fillStyle(wood).fillRect(2, 2, 14, 3);
+        graphics.fillStyle(gold).fillRect(3, 3, 12, 1);
+        graphics.fillStyle(shadow).fillRect(1, 5, 3, 13).fillRect(14, 5, 3, 13);
+        graphics.fillStyle(wood).fillRect(2, 5, 2, 13).fillRect(14, 5, 2, 13);
+      } else {
+        graphics.fillStyle(shadow).fillRect(1, 0, 3, 15).fillRect(14, 0, 3, 15);
+        graphics.fillStyle(wood).fillRect(2, 0, 2, 15).fillRect(14, 0, 2, 15);
+        graphics.fillStyle(gold).fillRect(1, 15, 16, 3).fillRect(3, 15, 12, 1);
+      }
+      graphics.generateTexture(key, 18, 18);
+      graphics.destroy();
+    };
+    drawFrame("door-open-top", true);
+    drawFrame("door-open-bottom", false);
+  }
+
   getMapObject(layerName, type) {
     return this.map
       .getObjectLayer(layerName)
@@ -429,6 +524,24 @@ export class ForestScene extends Phaser.Scene {
       if (tile.index >= 0) surfaceRow = Math.min(surfaceRow, tile.y);
     });
     return (surfaceRow + 1) * TILE;
+  }
+  getSurfaceYAt(worldX, minimumY = 0) {
+    const tileX = Phaser.Math.Clamp(
+      Math.floor(worldX / TILE),
+      0,
+      this.map.width - 1,
+    );
+    for (
+      let tileY = Math.max(0, Math.floor(minimumY / TILE));
+      tileY < this.map.height;
+      tileY += 1
+    ) {
+      const hasSurface = [this.mapLayers.Ground, this.mapLayers.Platforms].some(
+        (layer) => layer.getTileAt(tileX, tileY),
+      );
+      if (hasSurface) return tileY * TILE;
+    }
+    return this.fallTriggerY - TILE;
   }
   validateMapLayout() {
     const maxJumpHeight = 620 ** 2 / (2 * 1000);
@@ -470,6 +583,7 @@ export class ForestScene extends Phaser.Scene {
   }
 
   update() {
+    this.updateParallax();
     if (this.paused || this.ended || this.dying) return;
     this.player.update(this.keys, this.touch);
     this.enemies.children.each((enemy) => this.updateEnemyPatrol(enemy));
@@ -517,6 +631,9 @@ export class ForestScene extends Phaser.Scene {
     document.querySelector("#test-reset").addEventListener("click", () =>
       window.location.reload(),
     );
+    document.querySelector("#qa-checkpoint").addEventListener("click", () =>
+      this.moveToQaCheckpoint(),
+    );
     document.querySelector("#qa-portal").addEventListener("click", () =>
       this.moveToQaPortal(),
     );
@@ -531,6 +648,16 @@ export class ForestScene extends Phaser.Scene {
   moveToQaPortal() {
     if (this.ended || this.dying) return;
     this.player.respawn({ x: this.exitPoint.x - TILE * 1.6, y: this.exitPoint.y });
+    this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
+  }
+
+  moveToQaCheckpoint() {
+    if (this.ended || this.dying) return;
+    this.player.respawn({
+      x: this.checkpoint.x - TILE * 0.38,
+      y: this.getSurfaceYAt(this.checkpoint.x, this.checkpoint.y) - this.playerGroundOffset,
+    });
+    this.activateCheckpoint();
     this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
   }
 
@@ -598,6 +725,7 @@ export class ForestScene extends Phaser.Scene {
     this.checkpointActive = true;
     this.checkpoint.play("flag-on-wave");
     this.cameras.main.flash(280, 255, 240, 152);
+    this.emitCheckpointSparkles();
     const message = this.add
       .text(
         this.checkpoint.x,
@@ -620,6 +748,29 @@ export class ForestScene extends Phaser.Scene {
       duration: 1250,
       onComplete: () => message.destroy(),
     });
+  }
+
+  emitCheckpointSparkles() {
+    for (let index = 0; index < 7; index += 1) {
+      const sparkle = this.add
+        .rectangle(
+          this.checkpoint.x + Phaser.Math.Between(-20, 20),
+          this.checkpoint.y - Phaser.Math.Between(18, 50),
+          4,
+          4,
+          0xffdf74,
+        )
+        .setDepth(9);
+      this.tweens.add({
+        targets: sparkle,
+        y: sparkle.y - Phaser.Math.Between(22, 42),
+        alpha: 0,
+        scale: 1.6,
+        duration: 520 + index * 35,
+        ease: "Sine.easeOut",
+        onComplete: () => sparkle.destroy(),
+      });
+    }
   }
 
   damagePlayer(reason = "enemy") {
@@ -663,7 +814,7 @@ export class ForestScene extends Phaser.Scene {
     const spawn = this.checkpointActive ? this.checkpointPoint : this.spawnPoint;
     this.player.recoverFromPit(() => {
       if (this.lives <= 0) {
-        this.player.sprite.setPosition(spawn.x, spawn.y);
+        this.player.sprite.setPosition(spawn.x, spawn.y).setAlpha(1);
         this.player.playSad(() => {
           this.ended = true;
           this.dying = false;
@@ -679,7 +830,29 @@ export class ForestScene extends Phaser.Scene {
       }
       this.player.respawn(spawn);
       this.dying = false;
-    });
+    }, (x, y) => this.emitPitDisappearEffect(x, y));
+  }
+
+  emitPitDisappearEffect(x, y) {
+    for (let index = 0; index < 6; index += 1) {
+      const particle = this.add
+        .rectangle(
+          x + Phaser.Math.Between(-18, 18),
+          y + Phaser.Math.Between(-8, 8),
+          5,
+          5,
+          index % 2 ? 0xffe39b : 0x8dd69d,
+        )
+        .setDepth(10);
+      this.tweens.add({
+        targets: particle,
+        x: particle.x + Phaser.Math.Between(-25, 25),
+        y: particle.y + Phaser.Math.Between(-22, 8),
+        alpha: 0,
+        duration: 360,
+        onComplete: () => particle.destroy(),
+      });
+    }
   }
 
   togglePause() {
@@ -709,20 +882,56 @@ export class ForestScene extends Phaser.Scene {
     if (this.ended || this.dying) return;
     this.ended = true;
     if (!this.testMode) completeLevel(this.level.id);
-    const safePoint = { x: this.exitPoint.x - TILE * 0.9, y: this.player.sprite.y };
-    this.player.playVictory(() => {
-      this.physics.pause();
-      this.cameras.main.flash(500, 255, 248, 195);
-      this.showModal(
-        "🌟",
-        "¡Nivel completado!",
-        `¡Bubu ha cruzado el bosque! Obtuviste ${this.runCoins} monedas nuevas. La aventura continuará…`,
-        [
-          ["Jugar de nuevo", () => window.location.reload()],
-          ["Volver al menú", () => window.location.assign("/")],
-        ],
+    const safeX = this.exitPoint.x - TILE * 0.9;
+    const safePoint = {
+      x: safeX,
+      y:
+        this.getSurfaceYAt(safeX, this.exitPoint.y) -
+        this.playerGroundOffset,
+    };
+    this.openDoor(() => {
+      this.player.playVictory(
+        () =>
+          this.player.enterDoor(
+            { x: this.exitPoint.x + TILE * 0.05, y: safePoint.y },
+            () => this.showVictoryModal(),
+          ),
+        safePoint,
       );
-    }, safePoint);
+    });
+  }
+  openDoor(onComplete) {
+    if (this.door.opened) {
+      onComplete();
+      return;
+    }
+    this.door.opened = true;
+    this.tweens.add({
+      targets: [this.door.closedTop, this.door.closedBottom],
+      alpha: 0,
+      duration: 210,
+      ease: "Sine.easeOut",
+    });
+    this.tweens.add({
+      targets: [this.door.openTop, this.door.openBottom],
+      alpha: 1,
+      duration: 230,
+      ease: "Sine.easeIn",
+      onComplete,
+    });
+  }
+  showVictoryModal() {
+    this.physics.pause();
+    this.cameras.main.flash(500, 255, 248, 195);
+    this.showModal(
+      "🌟",
+      "¡Nivel completado!",
+      `¡Bubu ha cruzado el bosque! Obtuviste ${this.runCoins} monedas nuevas. La aventura continuará…`,
+      [
+        ["Jugar de nuevo", () => window.location.reload()],
+        ["Volver al menú", () => window.location.assign("/")],
+      ],
+    );
   }
   showModal(icon, title, copy, actions) {
     const modal = document.querySelector("#game-modal");
