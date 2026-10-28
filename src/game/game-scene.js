@@ -59,7 +59,7 @@ export class ForestScene extends Phaser.Scene {
     });
     this.load.spritesheet(
       "bubu-victory",
-      "/assets/characters/bubu/normalized/victory.png",
+      "/assets/characters/bubu/victory.png",
       { frameWidth: 64, frameHeight: 64 },
     );
     this.load.spritesheet("kenneyTiles", tilesheet, {

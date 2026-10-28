@@ -6,7 +6,6 @@ Juego de plataformas 2D en Phaser 3 y Vite. El Nivel 1 se diseña con Tiled y us
 
 ```powershell
 npm install
-npm run normalize:bubu
 npm run generate:level
 npm run validate:level
 npm run dev
@@ -30,6 +29,6 @@ Abre `levels/level_1.html?character=bubu&test=1` durante QA. Este modo deja disp
 
 ## Bubu
 
-Los sprites oficiales están en `public/assets/characters/bubu/`. Ejecuta `npm run normalize:bubu` después de reemplazarlos. La documentación de estados, fotogramas y transición está en `docs/bubu-animations.md`.
+Los sprites oficiales están en `public/assets/characters/bubu/`. La documentación de estados, fotogramas y transición está en `docs/bubu-animations.md`.
 
 Dudu permanecerá bloqueado hasta disponer de sus sprites oficiales separados bajo `public/assets/characters/dudu/`.

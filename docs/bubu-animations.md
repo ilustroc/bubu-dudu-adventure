@@ -1,6 +1,6 @@
 # Animaciones oficiales de Bubu
 
-Los archivos fuente se mantienen en `public/assets/characters/bubu/`. Las versiones normalizadas se generan con `npm run normalize:bubu` y nunca sustituyen sus fuentes.
+Los sprites de Bubu se mantienen directamente en `public/assets/characters/bubu/`. `normalized/idle.png` es un recurso estático heredado para el idle; no requiere ningún proceso automático.
 
 | Estado | Fuente | Rejilla / fotogramas | FPS | Regla |
 | --- | --- | --- | --- | --- |
@@ -11,7 +11,7 @@ Los archivos fuente se mantienen en `public/assets/characters/bubu/`. Las versio
 | fall | `fall.png` | 4×4, 16 frames | 12 | Velocidad vertical positiva |
 | hurt | `hurt.png` | 5×4, 17 frames útiles | 18 | Una vez; bloquea movimiento |
 | cry | `cry.png` | 4×4, 16 frames | 10 | Última vida; prioridad absoluta |
-| victory | `victory.png` | 20×16 fuente; 272 frames compactados a 16×17 | 8 | Secuencia curada de 20 frames (~2.5 s): sonrisa, brazos, salto, estrellas y corazones |
+| victory | `victory.png` | 5×4, frames 0–19 | 8 | Secuencia completa de 20 frames (~2.5 s): sonrisa, brazos, salto, estrellas y corazones |
 
 Prioridad: `cry` → `victory` → `hurt` → `jump/fall` → `run` → `idle lateral` → `idle prolongado`. Hurt, Cry y Victory finalizan con `animationcomplete`; Victory espera además una breve pausa antes de abrir el modal.
 

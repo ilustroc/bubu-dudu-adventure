@@ -18,11 +18,6 @@ const ANIMATIONS = [
   ["cry", "bubu-cry", 0, 15, 10, 0],
 ];
 
-// Curated sequence: calm smile -> raised arms -> bounce -> visible hearts and
-// stars -> gentle landing. These sections were selected from the official
-// compacted 16 x 17 victory sheet, rather than sampling arbitrary frames.
-const VICTORY_FRAMES = [0, 1, 2, 3, 36, 37, 38, 39, 72, 73, 74, 75, 144, 145, 146, 147, 216, 217, 218, 219];
-
 export class Player {
   constructor(scene, character, x, y) {
     this.scene = scene;
@@ -52,7 +47,10 @@ export class Player {
     if (!this.scene.anims.exists("bubu-victory")) {
       this.scene.anims.create({
         key: "bubu-victory",
-        frames: VICTORY_FRAMES.map((frame) => ({ key: "bubu-victory", frame })),
+        frames: this.scene.anims.generateFrameNumbers("bubu-victory", {
+          start: 0,
+          end: 19,
+        }),
         frameRate: 8,
         repeat: 0,
       });
