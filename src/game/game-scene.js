@@ -9,15 +9,53 @@ import {
 } from "../shared/progress.js";
 import tilesheet from "../../assets/external/kenney_pixel-platformer/Tilemap/tilemap_packed.png";
 import forestHills from "../../assets/levels/level1/tilesets/forest-hills.png";
+import praderaTerrain from "../../assets/biomas/pradera/bosque_tiled/tilesets/terreno_18px.png";
 import forestParallax from "../../assets/levels/level1/forest-parallax.png";
 import levelMapUrl from "../../assets/maps/level_01.json?url";
+import {
+  forestObjectAssets,
+  forestObjectTextureKey,
+} from "./forest-object-assets.js";
 
 const TILE = 54;
 const MAP_SCALE = 3;
 const KENNEY = {
   cactus: 127,
-  coin: 151,
-  forestMushroom: 128,
+};
+const TERRAIN = {
+  fill: 41,
+};
+const ENEMY_VISUALS = {
+  slime: {
+    animation: "enemy-slime-idle",
+    body: { width: 66, height: 54, offsetX: 23, offsetY: 40 },
+    scale: 0.6,
+    speed: 60,
+    texture: "enemy-slime",
+  },
+  mushroom: {
+    animation: "enemy-mushroom-idle",
+    body: { width: 70, height: 74, offsetX: 21, offsetY: 18 },
+    scale: 0.52,
+    speed: 82,
+    texture: "enemy-mushroom",
+  },
+  snail: {
+    animation: "enemy-snail-idle",
+    body: { width: 86, height: 46, offsetX: 17, offsetY: 48 },
+    scale: 0.55,
+    speed: 48,
+    texture: "enemy-snail",
+  },
+};
+const COIN = {
+  texture: "praderaCoin",
+  animation: "pradera-coin-spin",
+  frameRate: 8,
+  scale: 2,
+  bodyRadius: 7,
+  bodyOffsetX: 2,
+  bodyOffsetY: 20,
 };
 
 export class ForestScene extends Phaser.Scene {
@@ -26,11 +64,10 @@ export class ForestScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.spritesheet(
-      "bubu-idle",
-      "/assets/characters/bubu/idle.png",
-      { frameWidth: 64, frameHeight: 64 },
-    );
+    this.load.spritesheet("bubu-idle", "/assets/characters/bubu/idle.png", {
+      frameWidth: 64,
+      frameHeight: 64,
+    });
     this.load.spritesheet("bubu-run", "/assets/characters/bubu/run.png", {
       frameWidth: 64,
       frameHeight: 64,
@@ -64,6 +101,10 @@ export class ForestScene extends Phaser.Scene {
       frameWidth: 18,
       frameHeight: 18,
     });
+    this.load.spritesheet("praderaTerrain", praderaTerrain, {
+      frameWidth: 18,
+      frameHeight: 18,
+    });
     this.load.spritesheet(
       "door-opening",
       "/assets/environment/door-opening.png",
@@ -72,9 +113,34 @@ export class ForestScene extends Phaser.Scene {
     this.load.spritesheet(
       "praderaDecor",
       "/assets/biomas/pradera/decorations/pradera-decoraciones.png",
-      { frameWidth: 18, frameHeight: 18 }
+      { frameWidth: 18, frameHeight: 18 },
+    );
+    // 72x36: cuatro fotogramas horizontales de 18x36. La moneda ocupa la
+    // mitad inferior del fotograma, por eso el origen se ajusta al crearla.
+    this.load.spritesheet(
+      "praderaCoin",
+      "/assets/biomas/pradera/collectibles/moneda_pradera_4frames.png",
+      { frameWidth: 18, frameHeight: 36 },
+    );
+    this.load.spritesheet(
+      "enemy-slime",
+      "/assets/biomas/pradera/enemies/slime_verde.png",
+      { frameWidth: 112, frameHeight: 96 },
+    );
+    this.load.spritesheet(
+      "enemy-mushroom",
+      "/assets/biomas/pradera/enemies/hongo_rojo.png",
+      { frameWidth: 112, frameHeight: 96 },
+    );
+    this.load.spritesheet(
+      "enemy-snail",
+      "/assets/biomas/pradera/enemies/caracol.png",
+      { frameWidth: 120, frameHeight: 96 },
     );
     this.load.image("forestParallax", forestParallax);
+    for (const [textureKey, assetUrl] of forestObjectAssets) {
+      this.load.image(textureKey, assetUrl);
+    }
     this.load.tilemapTiledJSON("level01", levelMapUrl);
   }
 
@@ -108,12 +174,24 @@ export class ForestScene extends Phaser.Scene {
     this.praderaTileset = this.map.addTilesetImage(
       "pradera-decoraciones",
       "praderaDecor",
-      18, 18, 0, 0,
+      18,
+      18,
+      0,
+      0,
+    );
+    this.terrainTileset = this.map.addTilesetImage(
+      "terreno_18px",
+      "praderaTerrain",
+      18,
+      18,
+      0,
+      0,
     );
     this.levelTilesets = [
       this.tileset,
       this.vegetationTileset,
       this.praderaTileset,
+      this.terrainTileset,
     ];
     if (this.levelTilesets.some((tileset) => !tileset)) {
       throw new Error(
@@ -147,11 +225,13 @@ export class ForestScene extends Phaser.Scene {
         .createLayer(name, this.levelTilesets, 0, 0)
         .setScale(MAP_SCALE)
         .setDepth(depth);
+      if (name === "BackgroundVegetation") layer.setVisible(false);
       this.mapLayers[name] = layer;
     });
     this.mapLayers.Ground.setCollisionByExclusion([-1]);
     this.createGroundExtension();
     this.mapLayers.Platforms.setCollisionByExclusion([-1]);
+    this.createForestObjectLayers();
     this.fallTriggerY = this.getFallTriggerY();
     this.validateMapLayout();
     const spawn = this.getMapObject("Spawn_Exit", "spawn");
@@ -190,7 +270,11 @@ export class ForestScene extends Phaser.Scene {
     this.dying = false;
     this.paused = false;
     this.ui = new GameUi(this, this.character);
-    this.ui.update(this.runCoins, this.lives, this.map.getObjectLayer("Coins").objects.length);
+    this.ui.update(
+      this.runCoins,
+      this.lives,
+      this.map.getObjectLayer("Coins").objects.length,
+    );
     this.ui.pause.addEventListener("click", () => this.togglePause());
     this.input.keyboard.on("keydown-ESC", () => this.togglePause());
     this.createTestControls();
@@ -198,6 +282,7 @@ export class ForestScene extends Phaser.Scene {
       .startFollow(this.player.sprite, true, 0.1, 0.1)
       .setFollowOffset(0, -65)
       .setDeadzone(220, 95);
+    this.focusQaEnemy(query.get("enemy"), query.get("stomp") === "1");
     const hint = this.add
       .text(480, 155, "Salta sobre los enemigos y busca el portal", {
         fontFamily: '"Trebuchet MS"',
@@ -234,14 +319,13 @@ export class ForestScene extends Phaser.Scene {
     }
   }
 
-
   createScenery() {
     this.scenery = {
       SkyBackground: this.add
         .image(0, 0, "forestParallax")
         .setOrigin(0, 0)
         .setScrollFactor(0)
-        .setDepth(-30)
+        .setDepth(-30),
     };
 
     this.layoutScenery();
@@ -260,7 +344,7 @@ export class ForestScene extends Phaser.Scene {
 
     const scale = Math.max(
       visibleWidth / texture.width,
-      (visibleHeight + TILE * 4) / texture.height
+      (visibleHeight + TILE * 4) / texture.height,
     );
 
     // Mantener proporciones y cubrir toda la pantalla.
@@ -275,21 +359,13 @@ export class ForestScene extends Phaser.Scene {
 
     const visibleWidth = this.scale.width / camera.zoom;
 
-    const maxScroll = Math.max(
-      0,
-      sky.displayWidth - visibleWidth
-    );
+    const maxScroll = Math.max(0, sky.displayWidth - visibleWidth);
 
     // Desplazamiento continuo sin saltos ni modulo.
-    const offset = Phaser.Math.Clamp(
-      camera.scrollX * 0.025,
-      0,
-      maxScroll
-    );
+    const offset = Phaser.Math.Clamp(camera.scrollX * 0.025, 0, maxScroll);
 
     sky.setPosition(-Math.round(offset), 0);
   }
-
 
   createGroundExtension() {
     const ground = this.mapLayers.Ground;
@@ -299,43 +375,94 @@ export class ForestScene extends Phaser.Scene {
     // Sin colisiones y respetando los huecos.
     for (let row = 0; row < 2; row++) {
       let start = 0;
-      let currentFrame = -1;
+      let hasGround = false;
 
       const draw = (end) => {
-        if (currentFrame < 0 || end <= start) return;
+        if (!hasGround || end <= start) return;
 
-        this.add.tileSprite(
-          start * TILE,
-          (this.map.height + row) * TILE,
-          (end - start) * this.map.tileWidth,
-          this.map.tileHeight,
-          "kenneyTiles",
-          currentFrame
-        )
-        .setOrigin(0, 0)
-        .setScale(MAP_SCALE)
-        .setDepth(2);
+        this.add
+          .tileSprite(
+            start * TILE,
+            (this.map.height + row) * TILE,
+            (end - start) * this.map.tileWidth,
+            this.map.tileHeight,
+            "praderaTerrain",
+            TERRAIN.fill,
+          )
+          .setOrigin(0, 0)
+          .setScale(MAP_SCALE)
+          .setDepth(2);
       };
 
       for (let x = 0; x <= this.map.width; x++) {
-        const tile = x < this.map.width
-          ? ground.getTileAt(x, bottomRow)
-          : null;
+        const tile = x < this.map.width ? ground.getTileAt(x, bottomRow) : null;
 
-        const frame = tile && tile.index > 0
-          ? tile.index - 1
-          : -1;
+        const occupied = Boolean(tile && tile.index > 0);
 
-        if (frame !== currentFrame) {
+        if (occupied !== hasGround) {
           draw(x);
-          currentFrame = frame;
+          hasGround = occupied;
           start = x;
         }
       }
     }
   }
 
+  createForestObjectLayers() {
+    const forestTileset = this.cache.tilemap
+      .get("level01")
+      .data.tilesets.find((tileset) => tileset.name === "bosque_objetos");
+    if (!forestTileset) {
+      throw new Error("Falta el tileset bosque_objetos en level_01.");
+    }
+
+    const objectLayers = [
+      ["ForestBackgroundObjects", 1.5],
+      ["ForestForegroundObjects", 4.5],
+    ];
+
+    for (const [layerName, depth] of objectLayers) {
+      const layer = this.map.getObjectLayer(layerName);
+      if (!layer) throw new Error(`Falta la capa ${layerName} en level_01.`);
+
+      for (const object of layer.objects) {
+        if (!object.visible) continue;
+        const gid = (object.gid ?? 0) & 0x1fffffff;
+        const tileId = gid - forestTileset.firstgid;
+        const tile = forestTileset.tiles?.find(
+          (candidate) => candidate.id === tileId,
+        );
+        const textureKey = tile && forestObjectTextureKey(tile.image);
+        if (!textureKey) {
+          throw new Error(
+            `${layerName}: objeto visual sin textura compatible.`,
+          );
+        }
+
+        this.add
+          .image(object.x * MAP_SCALE, object.y * MAP_SCALE, textureKey)
+          .setOrigin(0, 1)
+          .setScale(MAP_SCALE)
+          .setAngle(object.rotation ?? 0)
+          .setAlpha(object.opacity ?? 1)
+          .setDepth(depth);
+      }
+    }
+  }
+
   createCoins() {
+    if (!this.anims.exists(COIN.animation)) {
+      this.anims.create({
+        key: COIN.animation,
+        frames: this.anims.generateFrameNumbers(COIN.texture, {
+          start: 0,
+          end: 3,
+        }),
+        frameRate: COIN.frameRate,
+        repeat: -1,
+      });
+    }
+
     this.coins = this.physics.add.group({
       allowGravity: false,
       immovable: true,
@@ -343,11 +470,15 @@ export class ForestScene extends Phaser.Scene {
     this.map.getObjectLayer("Coins").objects.forEach((object, index) => {
       const point = this.objectPoint(object);
       const coin = this.coins
-        .create(point.x, point.y, "kenneyTiles", KENNEY.coin)
-        .setScale(3)
+        .create(point.x, point.y, COIN.texture, 0)
+        // El dibujo ocupa la mitad inferior del fotograma de 18x36; este
+        // origen alinea el centro visual con la posición y el collider.
+        .setOrigin(0.5, 0.75)
+        .setScale(COIN.scale)
         .setDepth(5);
       coin.setData("id", object.name);
-      coin.body.setCircle(7, 2, 2);
+      coin.body.setCircle(COIN.bodyRadius, COIN.bodyOffsetX, COIN.bodyOffsetY);
+      coin.play(COIN.animation);
       this.tweens.add({
         targets: coin,
         y: point.y - 7,
@@ -363,26 +494,30 @@ export class ForestScene extends Phaser.Scene {
   }
 
   createEnemies() {
+    this.createEnemyAnimations();
     this.enemies = this.physics.add.group({ allowGravity: true });
     this.map.getObjectLayer("Enemies").objects.forEach((object) => {
       const point = this.objectPoint(object);
       const type = object.type;
       const range = this.objectProperty(object, "range", 5) * TILE;
+      const visual = this.getEnemyVisual(object);
       const enemy = this.enemies
-        .create(point.x, point.y, "kenneyTiles", KENNEY.forestMushroom)
-        .setScale(3)
+        .create(point.x, point.y, visual.texture)
+        .setScale(visual.scale)
         .setDepth(4)
         .setDataEnabled();
-      if (type === "patroller") enemy.setTint(0xc4df95);
+      enemy.play(visual.animation);
       enemy.setData({
         type,
         min: point.x - range,
         max: point.x + range,
-        speed: type === "slime" ? 60 : 82,
+        speed: visual.speed,
         direction: 1,
         turnUntil: 0,
       });
-      enemy.body.setSize(14, 15).setOffset(2, 3);
+      enemy.body
+        .setSize(visual.body.width, visual.body.height)
+        .setOffset(visual.body.offsetX, visual.body.offsetY);
       enemy.setVelocityX(enemy.getData("speed"));
     });
     this.physics.add.collider(this.enemies, [
@@ -392,6 +527,30 @@ export class ForestScene extends Phaser.Scene {
     this.physics.add.overlap(this.player.sprite, this.enemies, (_, enemy) =>
       this.hitEnemy(enemy),
     );
+  }
+
+  createEnemyAnimations() {
+    const definitions = [
+      ["enemy-slime-idle", "enemy-slime", 7],
+      ["enemy-mushroom-idle", "enemy-mushroom", 5],
+      ["enemy-snail-idle", "enemy-snail", 4],
+    ];
+    for (const [key, texture, frameRate] of definitions) {
+      if (this.anims.exists(key)) continue;
+      this.anims.create({
+        key,
+        frames: this.anims.generateFrameNumbers(texture, { start: 0, end: 3 }),
+        frameRate,
+        repeat: -1,
+      });
+    }
+  }
+
+  getEnemyVisual(object) {
+    if (object.type === "slime") return ENEMY_VISUALS.slime;
+    return object.name === "patrol-02"
+      ? ENEMY_VISUALS.snail
+      : ENEMY_VISUALS.mushroom;
   }
 
   createHazards() {
@@ -562,7 +721,9 @@ export class ForestScene extends Phaser.Scene {
     )
       problems.push("Hay escalones por encima de la altura mÃ¡xima de salto.");
     if (maxJumpDistance < 140)
-      problems.push("La distancia mÃ¡xima de salto no cubre el hueco diseÃ±ado.");
+      problems.push(
+        "La distancia mÃ¡xima de salto no cubre el hueco diseÃ±ado.",
+      );
     this.map.getObjectLayer("Hazards").objects.forEach((hazard) => {
       const x = Math.floor(hazard.x / 18);
       const y = Math.floor(hazard.y / 18) + 1;
@@ -622,26 +783,44 @@ export class ForestScene extends Phaser.Scene {
     if (!this.testMode) return;
     const controls = document.querySelector("#qa-controls");
     controls.hidden = false;
-    document.querySelector("#test-reset").addEventListener("click", () =>
-      window.location.reload(),
-    );
-    document.querySelector("#qa-checkpoint").addEventListener("click", () =>
-      this.moveToQaCheckpoint(),
-    );
-    document.querySelector("#qa-portal").addEventListener("click", () =>
-      this.moveToQaPortal(),
-    );
-    document.querySelector("#qa-victory").addEventListener("click", () =>
-      this.finishLevel(),
-    );
-    document.querySelector("#qa-fall").addEventListener("click", () =>
-      this.simulateQaFall(),
-    );
+    document
+      .querySelector("#test-reset")
+      .addEventListener("click", () => window.location.reload());
+    document
+      .querySelector("#qa-checkpoint")
+      .addEventListener("click", () => this.moveToQaCheckpoint());
+    document
+      .querySelector("#qa-portal")
+      .addEventListener("click", () => this.moveToQaPortal());
+    document
+      .querySelector("#qa-victory")
+      .addEventListener("click", () => this.finishLevel());
+    document
+      .querySelector("#qa-fall")
+      .addEventListener("click", () => this.simulateQaFall());
+  }
+
+  focusQaEnemy(value, stomp = false) {
+    if (!this.testMode || value === null) return;
+    const enemy = this.enemies.getChildren()[Number(value)];
+    if (!enemy) return;
+    const x = stomp ? enemy.x : enemy.x - TILE * 1.5;
+    this.player.respawn({
+      x,
+      y: stomp
+        ? enemy.body.top - TILE * 1.5
+        : this.getSurfaceYAt(x, enemy.y) - this.playerGroundOffset,
+    });
+    if (stomp) this.player.sprite.body.setVelocityY(260);
+    this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
   }
 
   moveToQaPortal() {
     if (this.ended || this.dying) return;
-    this.player.respawn({ x: this.exitPoint.x - TILE * 1.6, y: this.exitPoint.y });
+    this.player.respawn({
+      x: this.exitPoint.x - TILE * 1.6,
+      y: this.exitPoint.y,
+    });
     this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
   }
 
@@ -649,7 +828,9 @@ export class ForestScene extends Phaser.Scene {
     if (this.ended || this.dying) return;
     this.player.respawn({
       x: this.checkpoint.x - TILE * 0.38,
-      y: this.getSurfaceYAt(this.checkpoint.x, this.checkpoint.y) - this.playerGroundOffset,
+      y:
+        this.getSurfaceYAt(this.checkpoint.x, this.checkpoint.y) -
+        this.playerGroundOffset,
     });
     this.activateCheckpoint();
     this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
@@ -657,7 +838,10 @@ export class ForestScene extends Phaser.Scene {
 
   simulateQaFall() {
     if (this.ended || this.dying) return;
-    this.player.sprite.setPosition(this.spawnPoint.x + TILE * 4, this.fallTriggerY - 10);
+    this.player.sprite.setPosition(
+      this.spawnPoint.x + TILE * 4,
+      this.fallTriggerY - 10,
+    );
     this.player.sprite.body.setVelocity(0, 260);
     this.resolvePitFall();
   }
@@ -672,8 +856,16 @@ export class ForestScene extends Phaser.Scene {
 
     this.runCoins += 1;
     const { x, y } = coin;
+    // Corta animación y flotación antes de destruir para no dejar tweens
+    // apuntando a un sprite inactivo.
+    coin.anims.stop();
+    this.tweens.killTweensOf(coin);
     coin.destroy();
-    this.ui.update(this.runCoins, this.lives, this.map.getObjectLayer("Coins").objects.length);
+    this.ui.update(
+      this.runCoins,
+      this.lives,
+      this.map.getObjectLayer("Coins").objects.length,
+    );
     for (let i = 0; i < 5; i += 1) {
       const sparkle = this.add
         .text(x, y, "âœ¦", { fontSize: "16px", color: "#ffe894" })
@@ -773,7 +965,11 @@ export class ForestScene extends Phaser.Scene {
     if (this.player.invulnerable || this.ended || this.dying) return;
     this.dying = true;
     this.lives -= 1;
-    this.ui.update(this.runCoins, this.lives, this.map.getObjectLayer("Coins").objects.length);
+    this.ui.update(
+      this.runCoins,
+      this.lives,
+      this.map.getObjectLayer("Coins").objects.length,
+    );
     this.cameras.main.shake(170, 0.012);
     const spawn = this.checkpointActive
       ? this.checkpointPoint
@@ -806,27 +1002,39 @@ export class ForestScene extends Phaser.Scene {
     if (this.player.invulnerable || this.ended || this.dying) return;
     this.dying = true;
     this.lives -= 1;
-    this.ui.update(this.runCoins, this.lives, this.map.getObjectLayer("Coins").objects.length);
-    const spawn = this.checkpointActive ? this.checkpointPoint : this.spawnPoint;
-    this.player.recoverFromPit(() => {
-      if (this.lives <= 0) {
-        this.player.sprite.setPosition(spawn.x, spawn.y).setAlpha(1);
-        this.player.playSad(() => {
-          this.ended = true;
-          this.dying = false;
-          this.physics.pause();
-          this.showModal(
-            "ðŸ’§",
-            "Game Over",
-            "Bubu necesita descansar. Â¡IntÃ©ntalo otra vez desde el comienzo!",
-            [["Reintentar", () => window.location.reload()], ["Volver al menÃº", () => window.location.assign("/")]],
-          );
-        });
-        return;
-      }
-      this.player.respawn(spawn);
-      this.dying = false;
-    }, (x, y) => this.emitPitDisappearEffect(x, y));
+    this.ui.update(
+      this.runCoins,
+      this.lives,
+      this.map.getObjectLayer("Coins").objects.length,
+    );
+    const spawn = this.checkpointActive
+      ? this.checkpointPoint
+      : this.spawnPoint;
+    this.player.recoverFromPit(
+      () => {
+        if (this.lives <= 0) {
+          this.player.sprite.setPosition(spawn.x, spawn.y).setAlpha(1);
+          this.player.playSad(() => {
+            this.ended = true;
+            this.dying = false;
+            this.physics.pause();
+            this.showModal(
+              "ðŸ’§",
+              "Game Over",
+              "Bubu necesita descansar. Â¡IntÃ©ntalo otra vez desde el comienzo!",
+              [
+                ["Reintentar", () => window.location.reload()],
+                ["Volver al menÃº", () => window.location.assign("/")],
+              ],
+            );
+          });
+          return;
+        }
+        this.player.respawn(spawn);
+        this.dying = false;
+      },
+      (x, y) => this.emitPitDisappearEffect(x, y),
+    );
   }
 
   emitPitDisappearEffect(x, y) {
@@ -881,9 +1089,7 @@ export class ForestScene extends Phaser.Scene {
     const safeX = this.exitPoint.x - TILE * 0.9;
     const safePoint = {
       x: safeX,
-      y:
-        this.getSurfaceYAt(safeX, this.exitPoint.y) -
-        this.playerGroundOffset,
+      y: this.getSurfaceYAt(safeX, this.exitPoint.y) - this.playerGroundOffset,
     };
     this.openDoor(() => {
       this.player.playVictory(

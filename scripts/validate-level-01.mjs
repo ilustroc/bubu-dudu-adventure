@@ -24,13 +24,17 @@ const requiredTilesetFields = [
   "tilecount",
 ];
 const tilesets = [...map.tilesets].sort((a, b) => a.firstgid - b.firstgid);
-if (tilesets.length !== 3) fail(`se esperaban 3 tilesets y hay ${tilesets.length}`);
+if (tilesets.length !== 5) fail(`se esperaban 5 tilesets y hay ${tilesets.length}`);
 for (const tileset of tilesets) {
   if (!Number.isInteger(tileset.firstgid) || tileset.firstgid <= 0)
     fail("tileset con firstgid inválido");
-  for (const field of ["name", "image"])
-    if (typeof tileset[field] !== "string" || !tileset[field].trim())
-      fail(`tileset ${tileset.firstgid} sin ${field}`);
+  if (typeof tileset.name !== "string" || !tileset.name.trim())
+    fail(`tileset ${tileset.firstgid} sin name`);
+  const hasAtlasImage = typeof tileset.image === "string" && tileset.image.trim();
+  const hasCollectionImages = Array.isArray(tileset.tiles) && tileset.tiles.length > 0
+    && tileset.tiles.every((tile) => typeof tile.image === "string" && tile.image.trim());
+  if (!hasAtlasImage && !hasCollectionImages)
+    fail(`tileset ${tileset.firstgid} sin image`);
   for (const field of ["tilewidth", "tileheight", "tilecount"])
     if (!Number.isInteger(tileset[field]) || tileset[field] <= 0)
       fail(`tileset ${tileset.firstgid} sin ${field}`);
@@ -39,6 +43,8 @@ const expectedTilesets = [
   [1, "kenney_pixel_platformer"],
   [181, "forest-hills"],
   [277, "pradera-decoraciones"],
+  [655, "bosque_objetos"],
+  [754, "terreno_18px"],
 ];
 for (const [firstgid, name] of expectedTilesets) {
   const tileset = tilesets.find((candidate) => candidate.firstgid === firstgid);
@@ -56,14 +62,47 @@ const validGid = (gid) => {
     return rawGid >= tileset.firstgid && rawGid <= lastgid;
   });
 };
+const tilesetForGid = (gid) => {
+  const rawGid = gid & 0x1fffffff;
+  return tilesets.find((tileset, index) => {
+    const nextFirstgid = tilesets[index + 1]?.firstgid;
+    const lastgid = nextFirstgid
+      ? nextFirstgid - 1
+      : tileset.firstgid + tileset.tilecount - 1;
+    return rawGid >= tileset.firstgid && rawGid <= lastgid;
+  });
+};
 
-for (const name of ["Background", "Ground", "Platforms", "Decorations", "Coins", "Enemies", "Hazards", "Checkpoints", "Spawn_Exit"]) {
+for (const name of ["Background", "Ground", "Platforms", "Decorations", "Coins", "Enemies", "Hazards", "Checkpoints", "Spawn_Exit", "ForestBackgroundObjects", "ForestForegroundObjects"]) {
   if (!getLayer(name)) fail(`falta la capa ${name}`);
 }
 for (const layer of map.layers.filter((layer) => layer.type === "tilelayer")) {
   const invalidGid = layer.data.find((gid) => !validGid(gid));
   if (invalidGid !== undefined)
     fail(`GID ${invalidGid} inválido en la capa ${layer.name}`);
+}
+
+for (const name of ["Ground", "Platforms"]) {
+  for (const gid of getLayer(name).data) {
+    if (gid && tilesetForGid(gid)?.name !== "terreno_18px")
+      fail(`${name} contiene un tile que no pertenece a terreno_18px`);
+  }
+}
+
+const forestTileset = tilesets.find((tileset) => tileset.name === "bosque_objetos");
+for (const layerName of ["ForestBackgroundObjects", "ForestForegroundObjects"]) {
+  const objects = getLayer(layerName).objects;
+  if (!objects.length) fail(`${layerName} no contiene vegetación`);
+  for (const object of objects) {
+    const gid = (object.gid ?? 0) & 0x1fffffff;
+    const tileId = gid - forestTileset.firstgid;
+    const tile = forestTileset.tiles?.find((candidate) => candidate.id === tileId);
+    if (!tile?.image) fail(`${layerName} contiene un objeto sin PNG de bosque`);
+    const groundX = Math.floor((object.x + object.width / 2) / tileSize);
+    const groundY = Math.floor(object.y / tileSize);
+    if (!solidAt(groundX, groundY))
+      fail(`${object.name || "vegetación"} queda flotando fuera del suelo`);
+  }
 }
 
 const ground = getLayer("Ground");
