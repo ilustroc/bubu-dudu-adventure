@@ -23,8 +23,6 @@ const KENNEY = {
   dirt: 40,
   cactus: 127,
   coin: 151,
-  doorTop: 110,
-  doorBottom: 130,
   forestMushroom: 128,
 };
 
@@ -80,6 +78,11 @@ export class ForestScene extends Phaser.Scene {
       frameWidth: 18,
       frameHeight: 18,
     });
+    this.load.spritesheet(
+      "door-opening",
+      "/assets/environment/door-opening.png",
+      { frameWidth: 18, frameHeight: 36 },
+    );
     this.load.image("forestParallax", forestParallax);
     this.load.tilemapTiledJSON("level01", levelMapUrl);
   }
@@ -402,31 +405,13 @@ export class ForestScene extends Phaser.Scene {
     const exit = this.getMapObject("Spawn_Exit", "exit");
     this.exitPoint = this.objectPoint(exit);
     const doorBaseY = this.exitPoint.y + TILE / 2;
-    this.createDoorOpenTextures();
-    this.door = {
-      closedTop: this.add
-        .image(this.exitPoint.x, doorBaseY - TILE, "kenneyTiles", KENNEY.doorTop)
-        .setOrigin(0.5, 1)
-        .setScale(MAP_SCALE)
-        .setDepth(4),
-      closedBottom: this.add
-        .image(this.exitPoint.x, doorBaseY, "kenneyTiles", KENNEY.doorBottom)
-        .setOrigin(0.5, 1)
-        .setScale(MAP_SCALE)
-        .setDepth(4),
-      openTop: this.add
-        .image(this.exitPoint.x, doorBaseY - TILE, "door-open-top")
-        .setOrigin(0.5, 1)
-        .setScale(MAP_SCALE)
-        .setDepth(4)
-        .setAlpha(0),
-      openBottom: this.add
-        .image(this.exitPoint.x, doorBaseY, "door-open-bottom")
-        .setOrigin(0.5, 1)
-        .setScale(MAP_SCALE)
-        .setDepth(4)
-        .setAlpha(0),
-    };
+    this.createDoorAnimation();
+    this.door = this.add
+      .sprite(this.exitPoint.x, doorBaseY, "door-opening", 0)
+      .setOrigin(0.5, 1)
+      .setScale(MAP_SCALE)
+      .setDepth(4);
+    this.door.opened = false;
     this.exitTrigger = this.add.zone(
       this.exitPoint.x,
       this.exitPoint.y,
@@ -475,29 +460,17 @@ export class ForestScene extends Phaser.Scene {
     );
   }
 
-  createDoorOpenTextures() {
-    if (this.textures.exists("door-open-top")) return;
-    const drawFrame = (key, isTop) => {
-      const graphics = this.add.graphics();
-      const wood = 0xa66c4e;
-      const shadow = 0x6e4a43;
-      const gold = 0xe8b85e;
-      if (isTop) {
-        graphics.fillStyle(shadow).fillRect(1, 2, 16, 4);
-        graphics.fillStyle(wood).fillRect(2, 2, 14, 3);
-        graphics.fillStyle(gold).fillRect(3, 3, 12, 1);
-        graphics.fillStyle(shadow).fillRect(1, 5, 3, 13).fillRect(14, 5, 3, 13);
-        graphics.fillStyle(wood).fillRect(2, 5, 2, 13).fillRect(14, 5, 2, 13);
-      } else {
-        graphics.fillStyle(shadow).fillRect(1, 0, 3, 15).fillRect(14, 0, 3, 15);
-        graphics.fillStyle(wood).fillRect(2, 0, 2, 15).fillRect(14, 0, 2, 15);
-        graphics.fillStyle(gold).fillRect(1, 15, 16, 3).fillRect(3, 15, 12, 1);
-      }
-      graphics.generateTexture(key, 18, 18);
-      graphics.destroy();
-    };
-    drawFrame("door-open-top", true);
-    drawFrame("door-open-bottom", false);
+  createDoorAnimation() {
+    if (this.anims.exists("door-open")) return;
+    this.anims.create({
+      key: "door-open",
+      frames: this.anims.generateFrameNumbers("door-opening", {
+        start: 0,
+        end: 5,
+      }),
+      frameRate: 8,
+      repeat: 0,
+    });
   }
 
   getMapObject(layerName, type) {
@@ -906,19 +879,8 @@ export class ForestScene extends Phaser.Scene {
       return;
     }
     this.door.opened = true;
-    this.tweens.add({
-      targets: [this.door.closedTop, this.door.closedBottom],
-      alpha: 0,
-      duration: 210,
-      ease: "Sine.easeOut",
-    });
-    this.tweens.add({
-      targets: [this.door.openTop, this.door.openBottom],
-      alpha: 1,
-      duration: 230,
-      ease: "Sine.easeIn",
-      onComplete,
-    });
+    this.door.once("animationcomplete-door-open", onComplete);
+    this.door.play("door-open");
   }
   showVictoryModal() {
     this.physics.pause();
