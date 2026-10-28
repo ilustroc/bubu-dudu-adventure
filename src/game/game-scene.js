@@ -69,6 +69,11 @@ export class ForestScene extends Phaser.Scene {
       "/assets/environment/door-opening.png",
       { frameWidth: 18, frameHeight: 36 },
     );
+    this.load.spritesheet(
+      "praderaDecor",
+      "/assets/biomas/pradera/decorations/pradera-decoraciones.png",
+      { frameWidth: 18, frameHeight: 18 }
+    );
     this.load.image("forestParallax", forestParallax);
     this.load.tilemapTiledJSON("level01", levelMapUrl);
   }
@@ -100,6 +105,11 @@ export class ForestScene extends Phaser.Scene {
       0,
       0,
     );
+    this.praderaTileset = this.map.addTilesetImage(
+      "pradera-decoraciones",
+      "praderaDecor",
+      18, 18, 0, 0
+    );
     this.level = {
       id: "level1",
       width: this.map.width * TILE,
@@ -124,7 +134,7 @@ export class ForestScene extends Phaser.Scene {
       ["ForegroundVegetation", 8],
     ].forEach(([name, depth]) => {
       const layer = this.map
-        .createLayer(name, [this.tileset, this.vegetationTileset], 0, 0)
+        .createLayer(name, [this.tileset, this.vegetationTileset, this.praderaTileset], 0, 0)
         .setScale(MAP_SCALE)
         .setDepth(depth);
       this.mapLayers[name] = layer;
@@ -540,16 +550,16 @@ export class ForestScene extends Phaser.Scene {
           index > 0 && (row - rows[index - 1]) * TILE > maxJumpHeight,
       )
     )
-      problems.push("Hay escalones por encima de la altura máxima de salto.");
+      problems.push("Hay escalones por encima de la altura mÃ¡xima de salto.");
     if (maxJumpDistance < 140)
-      problems.push("La distancia máxima de salto no cubre el hueco diseñado.");
+      problems.push("La distancia mÃ¡xima de salto no cubre el hueco diseÃ±ado.");
     this.map.getObjectLayer("Hazards").objects.forEach((hazard) => {
       const x = Math.floor(hazard.x / 18);
       const y = Math.floor(hazard.y / 18) + 1;
       if (![groundTiles, platformTiles].some((layer) => layer.getTileAt(x, y)))
         problems.push(`Cactus sin suelo: ${hazard.name}`);
     });
-    if (problems.length) console.warn("Validación de level_01:", problems);
+    if (problems.length) console.warn("ValidaciÃ³n de level_01:", problems);
     else
       console.info(
         "level_01 validado: rutas, plataformas y monedas alcanzables.",
@@ -656,7 +666,7 @@ export class ForestScene extends Phaser.Scene {
     this.ui.update(this.runCoins, this.lives, this.map.getObjectLayer("Coins").objects.length);
     for (let i = 0; i < 5; i += 1) {
       const sparkle = this.add
-        .text(x, y, "✦", { fontSize: "16px", color: "#ffe894" })
+        .text(x, y, "âœ¦", { fontSize: "16px", color: "#ffe894" })
         .setDepth(10);
       this.tweens.add({
         targets: sparkle,
@@ -680,7 +690,7 @@ export class ForestScene extends Phaser.Scene {
       body.setVelocityY(-390);
       this.cameras.main.shake(65, 0.004);
       const puff = this.add
-        .text(enemy.x, enemy.y, "¡Puf!", {
+        .text(enemy.x, enemy.y, "Â¡Puf!", {
           fontSize: "18px",
           fontStyle: "bold",
           color: "#fff",
@@ -706,7 +716,7 @@ export class ForestScene extends Phaser.Scene {
       .text(
         this.checkpoint.x,
         this.checkpoint.y - 110,
-        "¡Checkpoint activado!",
+        "Â¡Checkpoint activado!",
         {
           fontFamily: '"Trebuchet MS"',
           fontSize: "23px",
@@ -765,12 +775,12 @@ export class ForestScene extends Phaser.Scene {
         this.dying = false;
         this.physics.pause();
         this.showModal(
-          "💧",
+          "ðŸ’§",
           "Game Over",
-          "Bubu necesita descansar. ¡Inténtalo otra vez desde el comienzo!",
+          "Bubu necesita descansar. Â¡IntÃ©ntalo otra vez desde el comienzo!",
           [
             ["Reintentar", () => window.location.reload()],
-            ["Volver al menú", () => window.location.assign("/")],
+            ["Volver al menÃº", () => window.location.assign("/")],
           ],
         );
       });
@@ -796,10 +806,10 @@ export class ForestScene extends Phaser.Scene {
           this.dying = false;
           this.physics.pause();
           this.showModal(
-            "💧",
+            "ðŸ’§",
             "Game Over",
-            "Bubu necesita descansar. ¡Inténtalo otra vez desde el comienzo!",
-            [["Reintentar", () => window.location.reload()], ["Volver al menú", () => window.location.assign("/")]],
+            "Bubu necesita descansar. Â¡IntÃ©ntalo otra vez desde el comienzo!",
+            [["Reintentar", () => window.location.reload()], ["Volver al menÃº", () => window.location.assign("/")]],
           );
         });
         return;
@@ -840,12 +850,12 @@ export class ForestScene extends Phaser.Scene {
     this.touch.clear();
     this.physics.pause();
     this.showModal(
-      "Ⅱ",
+      "â…¡",
       "Pausa",
-      "Tómate un respiro. El Bosque Encantado te espera.",
+      "TÃ³mate un respiro. El Bosque Encantado te espera.",
       [
         ["Continuar", () => this.resumeGame()],
-        ["Volver al menú", () => window.location.assign("/")],
+        ["Volver al menÃº", () => window.location.assign("/")],
       ],
     );
   }
@@ -889,12 +899,12 @@ export class ForestScene extends Phaser.Scene {
     this.physics.pause();
     this.cameras.main.flash(500, 255, 248, 195);
     this.showModal(
-      "🌟",
-      "¡Nivel completado!",
-      `¡Bubu ha cruzado el bosque! Obtuviste ${this.runCoins} monedas nuevas. La aventura continuará…`,
+      "ðŸŒŸ",
+      "Â¡Nivel completado!",
+      `Â¡Bubu ha cruzado el bosque! Obtuviste ${this.runCoins} monedas nuevas. La aventura continuarÃ¡â€¦`,
       [
         ["Jugar de nuevo", () => window.location.reload()],
-        ["Volver al menú", () => window.location.assign("/")],
+        ["Volver al menÃº", () => window.location.assign("/")],
       ],
     );
   }

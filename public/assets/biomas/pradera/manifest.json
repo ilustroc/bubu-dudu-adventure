@@ -1,0 +1,54 @@
+{
+  "biome": "pradera",
+  "assets": [
+    {
+      "name": "puerta_bosque",
+      "frames": 6,
+      "frameWidth": 160,
+      "frameHeight": 160,
+      "fps": 8
+    },
+    {
+      "name": "bandera_roja",
+      "frames": 4,
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "fps": 6
+    },
+    {
+      "name": "bandera_verde",
+      "frames": 4,
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "fps": 6
+    },
+    {
+      "name": "slime_verde",
+      "frames": 4,
+      "frameWidth": 112,
+      "frameHeight": 96,
+      "fps": 6
+    },
+    {
+      "name": "hongo_rojo",
+      "frames": 4,
+      "frameWidth": 112,
+      "frameHeight": 96,
+      "fps": 6
+    },
+    {
+      "name": "caracol",
+      "frames": 4,
+      "frameWidth": 120,
+      "frameHeight": 96,
+      "fps": 6
+    },
+    {
+      "name": "abeja",
+      "frames": 4,
+      "frameWidth": 104,
+      "frameHeight": 104,
+      "fps": 8
+    }
+  ]
+}

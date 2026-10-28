@@ -1,0 +1,904 @@
+{
+  "origen": "public\\assets\\backgrounds\\bosque_tileset_original.png",
+  "atlas": "decorations/pradera-decoraciones.png",
+  "tsx": "decorations/pradera-decoraciones.tsx",
+  "tile_size": 18,
+  "columns": 18,
+  "rows": 21,
+  "objetos": [
+    {
+      "nombre": "arbol_frondoso_01",
+      "imagen": "individuales/arbol_frondoso_01.png",
+      "col": 0,
+      "fila": 0,
+      "ancho_tiles": 3,
+      "alto_tiles": 5,
+      "recorte": [
+        582,
+        8,
+        828,
+        365
+      ],
+      "pixels_original": [
+        239,
+        349
+      ]
+    },
+    {
+      "nombre": "arbol_frondoso_02",
+      "imagen": "individuales/arbol_frondoso_02.png",
+      "col": 3,
+      "fila": 0,
+      "ancho_tiles": 3,
+      "alto_tiles": 5,
+      "recorte": [
+        830,
+        80,
+        1025,
+        365
+      ],
+      "pixels_original": [
+        195,
+        276
+      ]
+    },
+    {
+      "nombre": "arbol_frondoso_03",
+      "imagen": "individuales/arbol_frondoso_03.png",
+      "col": 6,
+      "fila": 0,
+      "ancho_tiles": 3,
+      "alto_tiles": 5,
+      "recorte": [
+        1034,
+        56,
+        1366,
+        367
+      ],
+      "pixels_original": [
+        332,
+        306
+      ]
+    },
+    {
+      "nombre": "pino_alto",
+      "imagen": "individuales/pino_alto.png",
+      "col": 9,
+      "fila": 0,
+      "ancho_tiles": 3,
+      "alto_tiles": 5,
+      "recorte": [
+        1370,
+        0,
+        1556,
+        369
+      ],
+      "pixels_original": [
+        186,
+        361
+      ]
+    },
+    {
+      "nombre": "pino_bajo",
+      "imagen": "individuales/pino_bajo.png",
+      "col": 12,
+      "fila": 0,
+      "ancho_tiles": 3,
+      "alto_tiles": 5,
+      "recorte": [
+        1553,
+        43,
+        1739,
+        371
+      ],
+      "pixels_original": [
+        186,
+        294
+      ]
+    },
+    {
+      "nombre": "arbusto_redondo",
+      "imagen": "individuales/arbusto_redondo.png",
+      "col": 0,
+      "fila": 5,
+      "ancho_tiles": 2,
+      "alto_tiles": 2,
+      "recorte": [
+        12,
+        365,
+        183,
+        476
+      ],
+      "pixels_original": [
+        167,
+        101
+      ]
+    },
+    {
+      "nombre": "arbusto_flor_amarilla",
+      "imagen": "individuales/arbusto_flor_amarilla.png",
+      "col": 2,
+      "fila": 5,
+      "ancho_tiles": 2,
+      "alto_tiles": 2,
+      "recorte": [
+        188,
+        368,
+        342,
+        475
+      ],
+      "pixels_original": [
+        147,
+        95
+      ]
+    },
+    {
+      "nombre": "arbusto_redondo_02",
+      "imagen": "individuales/arbusto_redondo_02.png",
+      "col": 4,
+      "fila": 5,
+      "ancho_tiles": 2,
+      "alto_tiles": 2,
+      "recorte": [
+        375,
+        363,
+        545,
+        477
+      ],
+      "pixels_original": [
+        170,
+        114
+      ]
+    },
+    {
+      "nombre": "arbusto_margaritas",
+      "imagen": "individuales/arbusto_margaritas.png",
+      "col": 6,
+      "fila": 5,
+      "ancho_tiles": 2,
+      "alto_tiles": 2,
+      "recorte": [
+        570,
+        360,
+        715,
+        475
+      ],
+      "pixels_original": [
+        145,
+        115
+      ]
+    },
+    {
+      "nombre": "helechos_grandes",
+      "imagen": "individuales/helechos_grandes.png",
+      "col": 8,
+      "fila": 5,
+      "ancho_tiles": 2,
+      "alto_tiles": 2,
+      "recorte": [
+        702,
+        372,
+        823,
+        475
+      ],
+      "pixels_original": [
+        121,
+        75
+      ]
+    },
+    {
+      "nombre": "margaritas_silvestres",
+      "imagen": "individuales/margaritas_silvestres.png",
+      "col": 10,
+      "fila": 5,
+      "ancho_tiles": 2,
+      "alto_tiles": 2,
+      "recorte": [
+        824,
+        374,
+        974,
+        476
+      ],
+      "pixels_original": [
+        150,
+        93
+      ]
+    },
+    {
+      "nombre": "roca_con_musgo",
+      "imagen": "individuales/roca_con_musgo.png",
+      "col": 12,
+      "fila": 5,
+      "ancho_tiles": 2,
+      "alto_tiles": 2,
+      "recorte": [
+        974,
+        371,
+        1194,
+        479
+      ],
+      "pixels_original": [
+        220,
+        87
+      ]
+    },
+    {
+      "nombre": "arbusto_corazones",
+      "imagen": "individuales/arbusto_corazones.png",
+      "col": 14,
+      "fila": 5,
+      "ancho_tiles": 2,
+      "alto_tiles": 2,
+      "recorte": [
+        1193,
+        367,
+        1380,
+        479
+      ],
+      "pixels_original": [
+        187,
+        112
+      ]
+    },
+    {
+      "nombre": "helecho_abierto",
+      "imagen": "individuales/helecho_abierto.png",
+      "col": 0,
+      "fila": 7,
+      "ancho_tiles": 2,
+      "alto_tiles": 2,
+      "recorte": [
+        187,
+        479,
+        299,
+        564
+      ],
+      "pixels_original": [
+        112,
+        83
+      ]
+    },
+    {
+      "nombre": "helecho_corto",
+      "imagen": "individuales/helecho_corto.png",
+      "col": 2,
+      "fila": 7,
+      "ancho_tiles": 2,
+      "alto_tiles": 2,
+      "recorte": [
+        293,
+        481,
+        375,
+        567
+      ],
+      "pixels_original": [
+        82,
+        75
+      ]
+    },
+    {
+      "nombre": "arbusto_flor_rosa",
+      "imagen": "individuales/arbusto_flor_rosa.png",
+      "col": 4,
+      "fila": 7,
+      "ancho_tiles": 2,
+      "alto_tiles": 2,
+      "recorte": [
+        365,
+        478,
+        483,
+        567
+      ],
+      "pixels_original": [
+        118,
+        89
+      ]
+    },
+    {
+      "nombre": "helecho_alto",
+      "imagen": "individuales/helecho_alto.png",
+      "col": 6,
+      "fila": 7,
+      "ancho_tiles": 2,
+      "alto_tiles": 2,
+      "recorte": [
+        481,
+        476,
+        565,
+        568
+      ],
+      "pixels_original": [
+        84,
+        91
+      ]
+    },
+    {
+      "nombre": "arbusto_bajo",
+      "imagen": "individuales/arbusto_bajo.png",
+      "col": 8,
+      "fila": 7,
+      "ancho_tiles": 2,
+      "alto_tiles": 2,
+      "recorte": [
+        673,
+        482,
+        796,
+        568
+      ],
+      "pixels_original": [
+        116,
+        72
+      ]
+    },
+    {
+      "nombre": "piedra_gris",
+      "imagen": "individuales/piedra_gris.png",
+      "col": 10,
+      "fila": 7,
+      "ancho_tiles": 2,
+      "alto_tiles": 2,
+      "recorte": [
+        784,
+        479,
+        888,
+        570
+      ],
+      "pixels_original": [
+        104,
+        87
+      ]
+    },
+    {
+      "nombre": "rocas_flores_blancas",
+      "imagen": "individuales/rocas_flores_blancas.png",
+      "col": 12,
+      "fila": 7,
+      "ancho_tiles": 2,
+      "alto_tiles": 2,
+      "recorte": [
+        868,
+        478,
+        1002,
+        574
+      ],
+      "pixels_original": [
+        134,
+        96
+      ]
+    },
+    {
+      "nombre": "rocas_grandes",
+      "imagen": "individuales/rocas_grandes.png",
+      "col": 14,
+      "fila": 7,
+      "ancho_tiles": 2,
+      "alto_tiles": 2,
+      "recorte": [
+        997,
+        476,
+        1197,
+        569
+      ],
+      "pixels_original": [
+        200,
+        88
+      ]
+    },
+    {
+      "nombre": "flor_rosa_baja",
+      "imagen": "individuales/flor_rosa_baja.png",
+      "col": 0,
+      "fila": 9,
+      "ancho_tiles": 1,
+      "alto_tiles": 1,
+      "recorte": [
+        56,
+        558,
+        141,
+        640
+      ],
+      "pixels_original": [
+        85,
+        82
+      ]
+    },
+    {
+      "nombre": "flor_amarilla",
+      "imagen": "individuales/flor_amarilla.png",
+      "col": 1,
+      "fila": 9,
+      "ancho_tiles": 1,
+      "alto_tiles": 1,
+      "recorte": [
+        146,
+        557,
+        276,
+        640
+      ],
+      "pixels_original": [
+        130,
+        83
+      ]
+    },
+    {
+      "nombre": "flor_blanca",
+      "imagen": "individuales/flor_blanca.png",
+      "col": 2,
+      "fila": 9,
+      "ancho_tiles": 1,
+      "alto_tiles": 1,
+      "recorte": [
+        268,
+        552,
+        356,
+        641
+      ],
+      "pixels_original": [
+        88,
+        89
+      ]
+    },
+    {
+      "nombre": "hojas",
+      "imagen": "individuales/hojas.png",
+      "col": 3,
+      "fila": 9,
+      "ancho_tiles": 1,
+      "alto_tiles": 1,
+      "recorte": [
+        445,
+        560,
+        545,
+        643
+      ],
+      "pixels_original": [
+        100,
+        83
+      ]
+    },
+    {
+      "nombre": "brotes",
+      "imagen": "individuales/brotes.png",
+      "col": 4,
+      "fila": 9,
+      "ancho_tiles": 1,
+      "alto_tiles": 1,
+      "recorte": [
+        548,
+        563,
+        625,
+        643
+      ],
+      "pixels_original": [
+        77,
+        80
+      ]
+    },
+    {
+      "nombre": "flor_blanca_pequena",
+      "imagen": "individuales/flor_blanca_pequena.png",
+      "col": 5,
+      "fila": 9,
+      "ancho_tiles": 1,
+      "alto_tiles": 1,
+      "recorte": [
+        612,
+        560,
+        709,
+        643
+      ],
+      "pixels_original": [
+        97,
+        83
+      ]
+    },
+    {
+      "nombre": "helecho_flor_rosa",
+      "imagen": "individuales/helecho_flor_rosa.png",
+      "col": 6,
+      "fila": 9,
+      "ancho_tiles": 1,
+      "alto_tiles": 1,
+      "recorte": [
+        698,
+        560,
+        791,
+        643
+      ],
+      "pixels_original": [
+        93,
+        83
+      ]
+    },
+    {
+      "nombre": "flor_roca",
+      "imagen": "individuales/flor_roca.png",
+      "col": 7,
+      "fila": 9,
+      "ancho_tiles": 1,
+      "alto_tiles": 1,
+      "recorte": [
+        783,
+        566,
+        981,
+        643
+      ],
+      "pixels_original": [
+        198,
+        77
+      ]
+    },
+    {
+      "nombre": "hongos_pequenos",
+      "imagen": "individuales/hongos_pequenos.png",
+      "col": 8,
+      "fila": 9,
+      "ancho_tiles": 1,
+      "alto_tiles": 1,
+      "recorte": [
+        969,
+        561,
+        1064,
+        643
+      ],
+      "pixels_original": [
+        95,
+        82
+      ]
+    },
+    {
+      "nombre": "hongo_rojo",
+      "imagen": "individuales/hongo_rojo.png",
+      "col": 9,
+      "fila": 9,
+      "ancho_tiles": 1,
+      "alto_tiles": 1,
+      "recorte": [
+        1064,
+        565,
+        1137,
+        647
+      ],
+      "pixels_original": [
+        73,
+        82
+      ]
+    },
+    {
+      "nombre": "flor_bosque",
+      "imagen": "individuales/flor_bosque.png",
+      "col": 10,
+      "fila": 9,
+      "ancho_tiles": 1,
+      "alto_tiles": 1,
+      "recorte": [
+        1405,
+        598,
+        1496,
+        676
+      ],
+      "pixels_original": [
+        86,
+        78
+      ]
+    },
+    {
+      "nombre": "margarita",
+      "imagen": "individuales/margarita.png",
+      "col": 11,
+      "fila": 9,
+      "ancho_tiles": 1,
+      "alto_tiles": 1,
+      "recorte": [
+        1489,
+        599,
+        1569,
+        670
+      ],
+      "pixels_original": [
+        80,
+        71
+      ]
+    },
+    {
+      "nombre": "flor_lila",
+      "imagen": "individuales/flor_lila.png",
+      "col": 12,
+      "fila": 9,
+      "ancho_tiles": 1,
+      "alto_tiles": 1,
+      "recorte": [
+        1565,
+        600,
+        1640,
+        667
+      ],
+      "pixels_original": [
+        75,
+        67
+      ]
+    },
+    {
+      "nombre": "flor_azul",
+      "imagen": "individuales/flor_azul.png",
+      "col": 13,
+      "fila": 9,
+      "ancho_tiles": 1,
+      "alto_tiles": 1,
+      "recorte": [
+        1650,
+        604,
+        1740,
+        669
+      ],
+      "pixels_original": [
+        90,
+        65
+      ]
+    },
+    {
+      "nombre": "arbusto_margarita",
+      "imagen": "individuales/arbusto_margarita.png",
+      "col": 14,
+      "fila": 9,
+      "ancho_tiles": 2,
+      "alto_tiles": 2,
+      "recorte": [
+        1425,
+        685,
+        1558,
+        783
+      ],
+      "pixels_original": [
+        133,
+        98
+      ]
+    },
+    {
+      "nombre": "cartel_derecha",
+      "imagen": "individuales/cartel_derecha.png",
+      "col": 0,
+      "fila": 11,
+      "ancho_tiles": 2,
+      "alto_tiles": 3,
+      "recorte": [
+        1358,
+        463,
+        1497,
+        614
+      ],
+      "pixels_original": [
+        139,
+        151
+      ]
+    },
+    {
+      "nombre": "piedras_bajas",
+      "imagen": "individuales/piedras_bajas.png",
+      "col": 2,
+      "fila": 11,
+      "ancho_tiles": 2,
+      "alto_tiles": 2,
+      "recorte": [
+        1284,
+        477,
+        1380,
+        571
+      ],
+      "pixels_original": [
+        96,
+        94
+      ]
+    },
+    {
+      "nombre": "arbusto_piedra",
+      "imagen": "individuales/arbusto_piedra.png",
+      "col": 4,
+      "fila": 11,
+      "ancho_tiles": 2,
+      "alto_tiles": 2,
+      "recorte": [
+        1182,
+        569,
+        1295,
+        647
+      ],
+      "pixels_original": [
+        113,
+        78
+      ]
+    },
+    {
+      "nombre": "hiedra_colgante",
+      "imagen": "individuales/hiedra_colgante.png",
+      "col": 6,
+      "fila": 11,
+      "ancho_tiles": 2,
+      "alto_tiles": 3,
+      "recorte": [
+        676,
+        646,
+        753,
+        771
+      ],
+      "pixels_original": [
+        77,
+        125
+      ]
+    },
+    {
+      "nombre": "hiedra_flores",
+      "imagen": "individuales/hiedra_flores.png",
+      "col": 8,
+      "fila": 11,
+      "ancho_tiles": 2,
+      "alto_tiles": 3,
+      "recorte": [
+        1080,
+        648,
+        1230,
+        769
+      ],
+      "pixels_original": [
+        150,
+        117
+      ]
+    },
+    {
+      "nombre": "hiedra_flores_02",
+      "imagen": "individuales/hiedra_flores_02.png",
+      "col": 10,
+      "fila": 11,
+      "ancho_tiles": 2,
+      "alto_tiles": 3,
+      "recorte": [
+        1241,
+        640,
+        1418,
+        770
+      ],
+      "pixels_original": [
+        177,
+        125
+      ]
+    },
+    {
+      "nombre": "hiedra_enredadera",
+      "imagen": "individuales/hiedra_enredadera.png",
+      "col": 12,
+      "fila": 11,
+      "ancho_tiles": 2,
+      "alto_tiles": 3,
+      "recorte": [
+        1561,
+        697,
+        1684,
+        863
+      ],
+      "pixels_original": [
+        123,
+        155
+      ]
+    },
+    {
+      "nombre": "tronco_enredadera",
+      "imagen": "individuales/tronco_enredadera.png",
+      "col": 14,
+      "fila": 11,
+      "ancho_tiles": 2,
+      "alto_tiles": 3,
+      "recorte": [
+        867,
+        757,
+        963,
+        862
+      ],
+      "pixels_original": [
+        96,
+        100
+      ]
+    },
+    {
+      "nombre": "arco_enredadera",
+      "imagen": "individuales/arco_enredadera.png",
+      "col": 16,
+      "fila": 11,
+      "ancho_tiles": 2,
+      "alto_tiles": 3,
+      "recorte": [
+        1080,
+        758,
+        1260,
+        863
+      ],
+      "pixels_original": [
+        180,
+        103
+      ]
+    },
+    {
+      "nombre": "moneda_frente",
+      "imagen": "individuales/moneda_frente.png",
+      "col": 0,
+      "fila": 15,
+      "ancho_tiles": 1,
+      "alto_tiles": 2,
+      "recorte": [
+        1446,
+        370,
+        1527,
+        475
+      ],
+      "pixels_original": [
+        81,
+        89
+      ]
+    },
+    {
+      "nombre": "moneda_canto",
+      "imagen": "individuales/moneda_canto.png",
+      "col": 1,
+      "fila": 15,
+      "ancho_tiles": 1,
+      "alto_tiles": 2,
+      "recorte": [
+        1529,
+        369,
+        1589,
+        475
+      ],
+      "pixels_original": [
+        60,
+        69
+      ]
+    },
+    {
+      "nombre": "moneda_brillo",
+      "imagen": "individuales/moneda_brillo.png",
+      "col": 2,
+      "fila": 15,
+      "ancho_tiles": 1,
+      "alto_tiles": 2,
+      "recorte": [
+        1585,
+        370,
+        1666,
+        475
+      ],
+      "pixels_original": [
+        81,
+        69
+      ]
+    },
+    {
+      "nombre": "moneda_canto_2",
+      "imagen": "individuales/moneda_canto_2.png",
+      "col": 3,
+      "fila": 15,
+      "ancho_tiles": 1,
+      "alto_tiles": 2,
+      "recorte": [
+        1680,
+        370,
+        1731,
+        474
+      ],
+      "pixels_original": [
+        51,
+        66
+      ]
+    }
+  ],
+  "terrain_recortes": [
+    "suelo_cesped_largo_01.png",
+    "suelo_cesped_largo_02.png",
+    "suelo_esquina_izquierda.png",
+    "suelo_cesped_centro.png",
+    "suelo_pendiente_izquierda.png",
+    "suelo_pendiente_derecha.png",
+    "suelo_tierra_interior.png",
+    "plataforma_flotante.png",
+    "plataforma_cesped.png"
+  ],
+  "aviso": "Recortes de terreno no validados como seamless. No sustituir Ground automaticamente."
+}
