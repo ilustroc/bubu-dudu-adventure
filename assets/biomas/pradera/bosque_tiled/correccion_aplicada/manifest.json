@@ -1,0 +1,78 @@
+{
+  "terrain": {
+    "image": "tilesets/terreno_18px.png",
+    "tsx": "tilesets/terreno_18px.tsx",
+    "columns": 6,
+    "rows": 7,
+    "tileWidth": 18,
+    "tileHeight": 18,
+    "count": 42
+  },
+  "trees": [
+    {
+      "file": "arbol_pino_01.png",
+      "size": [
+        201,
+        358
+      ]
+    },
+    {
+      "file": "arbol_pino_02.png",
+      "size": [
+        182,
+        291
+      ]
+    },
+    {
+      "file": "arbole_001.png",
+      "size": [
+        273,
+        352
+      ]
+    }
+  ],
+  "tileIds": {
+    "00_pasto_borde_izquierdo": 0,
+    "01_pasto_centro_a": 1,
+    "02_pasto_centro_b": 2,
+    "03_pasto_centro_c": 3,
+    "04_pasto_borde_derecho": 4,
+    "05_pasto_isla_individual": 5,
+    "06_tierra_lateral_izq": 6,
+    "07_tierra_centro_a": 7,
+    "08_tierra_centro_b": 8,
+    "09_tierra_centro_c": 9,
+    "10_tierra_lateral_der": 10,
+    "11_tierra_lateral_ambos": 11,
+    "12_inferior_izq": 12,
+    "13_inferior_centro_a": 13,
+    "14_inferior_centro_b": 14,
+    "15_inferior_centro_c": 15,
+    "16_inferior_der": 16,
+    "17_inferior_aislado": 17,
+    "18_plataforma_izq": 18,
+    "19_plataforma_centro": 19,
+    "20_plataforma_der": 20,
+    "21_plataforma_pequena": 21,
+    "22_plataforma_ancha": 22,
+    "23_isla_punta": 23,
+    "24_rampa_baja_der": 24,
+    "25_rampa_sube_der": 25,
+    "26_rampa_baja_der_alt": 26,
+    "27_rampa_sube_der_alt": 27,
+    "28_tierra_sin_pasto": 28,
+    "29_plataforma_esquina": 29,
+    "30_pasto_variante_1": 30,
+    "31_pasto_variante_2": 31,
+    "32_pasto_variante_3": 32,
+    "33_pasto_variante_4": 33,
+    "34_pasto_variante_5": 34,
+    "35_pasto_variante_6": 35,
+    "36_esquina_superior_izq": 36,
+    "37_esquina_superior_der": 37,
+    "38_columna_pasto": 38,
+    "39_columna_tierra": 39,
+    "40_columna_base": 40,
+    "41_relleno_tierra": 41
+  }
+}
