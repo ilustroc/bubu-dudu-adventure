@@ -719,10 +719,10 @@ export class ForestScene extends Phaser.Scene {
           index > 0 && (row - rows[index - 1]) * TILE > maxJumpHeight,
       )
     )
-      problems.push("Hay escalones por encima de la altura mÃ¡xima de salto.");
+      problems.push("Hay escalones por encima de la altura máxima de salto.");
     if (maxJumpDistance < 140)
       problems.push(
-        "La distancia mÃ¡xima de salto no cubre el hueco diseÃ±ado.",
+        "La distancia máxima de salto no cubre el hueco diseñado.",
       );
     this.map.getObjectLayer("Hazards").objects.forEach((hazard) => {
       const x = Math.floor(hazard.x / 18);
@@ -730,7 +730,7 @@ export class ForestScene extends Phaser.Scene {
       if (![groundTiles, platformTiles].some((layer) => layer.getTileAt(x, y)))
         problems.push(`Cactus sin suelo: ${hazard.name}`);
     });
-    if (problems.length) console.warn("ValidaciÃ³n de level_01:", problems);
+    if (problems.length) console.warn("Validación de level_01:", problems);
     else
       console.info(
         "level_01 validado: rutas, plataformas y monedas alcanzables.",
@@ -892,7 +892,7 @@ export class ForestScene extends Phaser.Scene {
       body.setVelocityY(-390);
       this.cameras.main.shake(65, 0.004);
       const puff = this.add
-        .text(enemy.x, enemy.y, "Â¡Puf!", {
+        .text(enemy.x, enemy.y, "¡Puf!", {
           fontSize: "18px",
           fontStyle: "bold",
           color: "#fff",
@@ -918,7 +918,7 @@ export class ForestScene extends Phaser.Scene {
       .text(
         this.checkpoint.x,
         this.checkpoint.y - 110,
-        "Â¡Checkpoint activado!",
+        "¡Checkpoint activado!",
         {
           fontFamily: '"Trebuchet MS"',
           fontSize: "23px",
@@ -981,12 +981,12 @@ export class ForestScene extends Phaser.Scene {
         this.dying = false;
         this.physics.pause();
         this.showModal(
-          "ðŸ’§",
+          "💧",
           "Game Over",
-          "Bubu necesita descansar. Â¡IntÃ©ntalo otra vez desde el comienzo!",
+          "Bubu necesita descansar. ¡Inténtalo otra vez desde el comienzo!",
           [
             ["Reintentar", () => window.location.reload()],
-            ["Volver al menÃº", () => window.location.assign("/")],
+            ["Volver al menú", () => window.location.assign("/")],
           ],
         );
       });
@@ -1019,12 +1019,12 @@ export class ForestScene extends Phaser.Scene {
             this.dying = false;
             this.physics.pause();
             this.showModal(
-              "ðŸ’§",
+              "💧",
               "Game Over",
-              "Bubu necesita descansar. Â¡IntÃ©ntalo otra vez desde el comienzo!",
+              "Bubu necesita descansar. ¡Inténtalo otra vez desde el comienzo!",
               [
                 ["Reintentar", () => window.location.reload()],
-                ["Volver al menÃº", () => window.location.assign("/")],
+                ["Volver al menú", () => window.location.assign("/")],
               ],
             );
           });
@@ -1070,10 +1070,10 @@ export class ForestScene extends Phaser.Scene {
     this.showModal(
       "â…¡",
       "Pausa",
-      "TÃ³mate un respiro. El Bosque Encantado te espera.",
+      "Tómate un respiro. El Bosque Encantado te espera.",
       [
         ["Continuar", () => this.resumeGame()],
-        ["Volver al menÃº", () => window.location.assign("/")],
+        ["Volver al menú", () => window.location.assign("/")],
       ],
     );
   }
@@ -1115,12 +1115,12 @@ export class ForestScene extends Phaser.Scene {
     this.physics.pause();
     this.cameras.main.flash(500, 255, 248, 195);
     this.showModal(
-      "ðŸŒŸ",
-      "Â¡Nivel completado!",
-      `Â¡Bubu ha cruzado el bosque! Obtuviste ${this.runCoins} monedas nuevas. La aventura continuarÃ¡â€¦`,
+      "🌟",
+      "¡Nivel completado!",
+      `¡Bubu ha cruzado el bosque! Obtuviste ${this.runCoins} monedas nuevas. La aventura continuará…`,
       [
         ["Jugar de nuevo", () => window.location.reload()],
-        ["Volver al menÃº", () => window.location.assign("/")],
+        ["Volver al menú", () => window.location.assign("/")],
       ],
     );
   }
