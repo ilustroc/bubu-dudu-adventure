@@ -5,13 +5,14 @@ import { GameUi } from "./ui.js";
 import {
   collectCoin,
   completeLevel,
+  isLevelUnlocked,
   saveSelectedCharacter,
 } from "../shared/progress.js";
 import tilesheet from "../../assets/external/kenney_pixel-platformer/Tilemap/tilemap_packed.png";
 import forestHills from "../../assets/levels/level1/tilesets/forest-hills.png";
 import praderaTerrain from "../../assets/biomas/pradera/bosque_tiled/tilesets/terreno_18px.png";
 import forestParallax from "../../assets/levels/level1/forest-parallax.png";
-import levelMapUrl from "../../assets/maps/level_01.json?url";
+import { getLevel, levelUrl } from "./levels.js";
 import {
   forestObjectAssets,
   forestObjectTextureKey,
@@ -47,6 +48,14 @@ const ENEMY_VISUALS = {
     speed: 48,
     texture: "enemy-snail",
   },
+  bee: {
+    animation: "enemy-bee-fly",
+    body: { width: 72, height: 52, offsetX: 16, offsetY: 30 },
+    flying: true,
+    scale: 0.5,
+    speed: 78,
+    texture: "enemy-bee",
+  },
 };
 const COIN = {
   texture: "praderaCoin",
@@ -61,6 +70,11 @@ const COIN = {
 export class ForestScene extends Phaser.Scene {
   constructor() {
     super("forest");
+  }
+
+  init() {
+    const query = new URLSearchParams(window.location.search);
+    this.levelDefinition = getLevel(Number.parseInt(query.get("level"), 10));
   }
 
   preload() {
@@ -137,11 +151,17 @@ export class ForestScene extends Phaser.Scene {
       "/assets/biomas/pradera/enemies/caracol.png",
       { frameWidth: 120, frameHeight: 96 },
     );
+    this.load.spritesheet(
+      "enemy-bee",
+      "/assets/biomas/pradera/enemies/abeja.png",
+      { frameWidth: 104, frameHeight: 104 },
+    );
+    this.load.image("dudu-reunion", "/assets/images/dudu.png");
     this.load.image("forestParallax", forestParallax);
     for (const [textureKey, assetUrl] of forestObjectAssets) {
       this.load.image(textureKey, assetUrl);
     }
-    this.load.tilemapTiledJSON("level01", levelMapUrl);
+    this.load.tilemapTiledJSON(this.levelDefinition.key, this.levelDefinition.url);
   }
 
   create() {
@@ -152,9 +172,13 @@ export class ForestScene extends Phaser.Scene {
       return;
     }
     this.testMode = query.get("test") === "1";
+    if (!this.testMode && !isLevelUnlocked(this.levelDefinition.number)) {
+      window.location.replace("/?notice=locked");
+      return;
+    }
     this.character = "bubu";
     if (!this.testMode) saveSelectedCharacter(this.character);
-    this.map = this.make.tilemap({ key: "level01" });
+    this.map = this.make.tilemap({ key: this.levelDefinition.key });
     this.tileset = this.map.addTilesetImage(
       "kenney_pixel_platformer",
       "kenneyTiles",
@@ -195,11 +219,11 @@ export class ForestScene extends Phaser.Scene {
     ];
     if (this.levelTilesets.some((tileset) => !tileset)) {
       throw new Error(
-        "No se pudo registrar uno de los tilesets de level_01: revisa los metadatos exportados por Tiled.",
+        `No se pudo registrar uno de los tilesets de ${this.levelDefinition.id}: revisa los metadatos exportados por Tiled.`,
       );
     }
     this.level = {
-      id: "level1",
+      ...this.levelDefinition,
       width: this.map.width * TILE,
       height: this.map.height * TILE,
     };
@@ -269,7 +293,12 @@ export class ForestScene extends Phaser.Scene {
     this.ended = false;
     this.dying = false;
     this.paused = false;
-    this.ui = new GameUi(this, this.character);
+    document.title = `Nivel ${this.level.number} | Bubu & Dudu al Rescate`;
+    document.querySelector("#game-container").setAttribute(
+      "aria-label",
+      `Nivel ${this.level.number}: ${this.level.name}`,
+    );
+    this.ui = new GameUi(this, this.character, this.level);
     this.ui.update(
       this.runCoins,
       this.lives,
@@ -410,10 +439,10 @@ export class ForestScene extends Phaser.Scene {
 
   createForestObjectLayers() {
     const forestTileset = this.cache.tilemap
-      .get("level01")
+      .get(this.levelDefinition.key)
       .data.tilesets.find((tileset) => tileset.name === "bosque_objetos");
     if (!forestTileset) {
-      throw new Error("Falta el tileset bosque_objetos en level_01.");
+      throw new Error(`Falta el tileset bosque_objetos en ${this.levelDefinition.id}.`);
     }
 
     const objectLayers = [
@@ -423,7 +452,7 @@ export class ForestScene extends Phaser.Scene {
 
     for (const [layerName, depth] of objectLayers) {
       const layer = this.map.getObjectLayer(layerName);
-      if (!layer) throw new Error(`Falta la capa ${layerName} en level_01.`);
+      if (!layer) throw new Error(`Falta la capa ${layerName} en ${this.levelDefinition.id}.`);
 
       for (const object of layer.objects) {
         if (!object.visible) continue;
@@ -514,10 +543,12 @@ export class ForestScene extends Phaser.Scene {
         speed: visual.speed,
         direction: 1,
         turnUntil: 0,
+        flying: Boolean(visual.flying),
       });
       enemy.body
         .setSize(visual.body.width, visual.body.height)
         .setOffset(visual.body.offsetX, visual.body.offsetY);
+      if (visual.flying) enemy.body.setAllowGravity(false);
       enemy.setVelocityX(enemy.getData("speed"));
     });
     this.physics.add.collider(this.enemies, [
@@ -534,6 +565,7 @@ export class ForestScene extends Phaser.Scene {
       ["enemy-slime-idle", "enemy-slime", 7],
       ["enemy-mushroom-idle", "enemy-mushroom", 5],
       ["enemy-snail-idle", "enemy-snail", 4],
+      ["enemy-bee-fly", "enemy-bee", 8],
     ];
     for (const [key, texture, frameRate] of definitions) {
       if (this.anims.exists(key)) continue;
@@ -548,6 +580,7 @@ export class ForestScene extends Phaser.Scene {
 
   getEnemyVisual(object) {
     if (object.type === "slime") return ENEMY_VISUALS.slime;
+    if (object.type === "bee") return ENEMY_VISUALS.bee;
     return object.name === "patrol-02"
       ? ENEMY_VISUALS.snail
       : ENEMY_VISUALS.mushroom;
@@ -730,10 +763,10 @@ export class ForestScene extends Phaser.Scene {
       if (![groundTiles, platformTiles].some((layer) => layer.getTileAt(x, y)))
         problems.push(`Cactus sin suelo: ${hazard.name}`);
     });
-    if (problems.length) console.warn("Validación de level_01:", problems);
+    if (problems.length) console.warn(`Validación de ${this.level.id}:`, problems);
     else
       console.info(
-        "level_01 validado: rutas, plataformas y monedas alcanzables.",
+        `${this.level.id} validado: rutas, plataformas y monedas alcanzables.`,
       );
   }
 
@@ -763,8 +796,9 @@ export class ForestScene extends Phaser.Scene {
     const hitWall =
       (direction < 0 && enemy.body.blocked.left) ||
       (direction > 0 && enemy.body.blocked.right);
+    const reachedEdge = !enemy.getData("flying") && !this.hasFloorAhead(enemy, direction);
     if (
-      (reachedLimit || hitWall || !this.hasFloorAhead(enemy, direction)) &&
+      (reachedLimit || hitWall || reachedEdge) &&
       now >= enemy.getData("turnUntil")
     ) {
       direction *= -1;
@@ -868,7 +902,7 @@ export class ForestScene extends Phaser.Scene {
     );
     for (let i = 0; i < 5; i += 1) {
       const sparkle = this.add
-        .text(x, y, "âœ¦", { fontSize: "16px", color: "#ffe894" })
+        .text(x, y, "✦", { fontSize: "16px", color: "#ffe894" })
         .setDepth(10);
       this.tweens.add({
         targets: sparkle,
@@ -1068,7 +1102,7 @@ export class ForestScene extends Phaser.Scene {
     this.touch.clear();
     this.physics.pause();
     this.showModal(
-      "â…¡",
+      "Ⅱ",
       "Pausa",
       "Tómate un respiro. El Bosque Encantado te espera.",
       [
@@ -1096,7 +1130,10 @@ export class ForestScene extends Phaser.Scene {
         () =>
           this.player.enterDoor(
             { x: this.exitPoint.x + TILE * 0.05, y: safePoint.y },
-            () => this.showVictoryModal(),
+            () => {
+              if (this.level.number === 5) this.showFinalReunion();
+              else this.showVictoryModal();
+            },
           ),
         safePoint,
       );
@@ -1114,15 +1151,80 @@ export class ForestScene extends Phaser.Scene {
   showVictoryModal() {
     this.physics.pause();
     this.cameras.main.flash(500, 255, 248, 195);
+    const actions = [];
+    if (this.level.number < 5) {
+      actions.push([
+        "Siguiente nivel",
+        () => window.location.assign(levelUrl(this.level.number + 1, this.testMode)),
+      ]);
+    }
+    actions.push(
+      ["Jugar de nuevo", () => window.location.reload()],
+      ["Volver al menú", () => window.location.assign("/")],
+    );
     this.showModal(
       "🌟",
       "¡Nivel completado!",
-      `¡Bubu ha cruzado el bosque! Obtuviste ${this.runCoins} monedas nuevas. La aventura continuará…`,
-      [
-        ["Jugar de nuevo", () => window.location.reload()],
-        ["Volver al menú", () => window.location.assign("/")],
-      ],
+      `¡Bubu ha superado ${this.level.name}! Obtuviste ${this.runCoins} monedas nuevas.`,
+      actions,
     );
+  }
+  showFinalReunion() {
+    this.physics.pause();
+    this.cameras.main.flash(500, 255, 248, 195);
+
+    const floorY = this.getSurfaceYAt(this.exitPoint.x - TILE, this.exitPoint.y);
+    const reunionY = floorY - 4;
+    const duduSource = this.textures.get("dudu-reunion").getSourceImage();
+    const duduScale = 78 / duduSource.height;
+    const bubu = this.add
+      .sprite(this.exitPoint.x - 70, reunionY, "bubu-idle", 0)
+      .setOrigin(0.5, 1)
+      .setScale(1.15)
+      .setDepth(8);
+    const dudu = this.add
+      .image(this.exitPoint.x + 60, reunionY, "dudu-reunion")
+      .setOrigin(0.5, 1)
+      .setScale(duduScale)
+      .setDepth(8);
+    const heart = this.add
+      .text(this.exitPoint.x - 5, reunionY - 105, "❤", {
+        fontFamily: '"Trebuchet MS"',
+        fontSize: "42px",
+        color: "#f28aa8",
+        stroke: "#fff7df",
+        strokeThickness: 6,
+      })
+      .setOrigin(0.5)
+      .setDepth(9);
+
+    this.tweens.add({
+      targets: [bubu, dudu],
+      x: "-=18",
+      duration: 680,
+      yoyo: true,
+      ease: "Sine.easeInOut",
+    });
+    this.tweens.add({
+      targets: heart,
+      y: heart.y - 20,
+      scale: 1.2,
+      yoyo: true,
+      repeat: 1,
+      duration: 520,
+      ease: "Sine.easeInOut",
+    });
+    this.time.delayedCall(1450, () => {
+      this.showModal(
+        "❤",
+        "¡Lo logramos!",
+        "Después de recorrer tantos caminos, Bubu finalmente encontró a Dudu. Porque no importa lo largo que sea el camino, siempre hay alguien por quien vale la pena llegar hasta el final. ❤️",
+        [
+          ["Jugar de nuevo", () => window.location.reload()],
+          ["Volver al menú", () => window.location.assign("/")],
+        ],
+      );
+    });
   }
   showModal(icon, title, copy, actions) {
     const modal = document.querySelector("#game-modal");

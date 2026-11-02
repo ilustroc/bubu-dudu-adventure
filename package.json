@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
     "generate:level": "node scripts/generate-level-01.mjs",
+    "generate:pradera-levels": "node scripts/generate-pradera-levels.mjs",
     "sync:tilesets": "node scripts/sync-tiled-tilesets.mjs",
     "validate:level": "node scripts/validate-level-01.mjs"
   },

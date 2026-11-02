@@ -1,11 +1,12 @@
 export class GameUi {
-  constructor(scene, character) {
+  constructor(scene, character, level = null) {
     this.scene = scene;
     this.title = document.querySelector("#hud-level");
     this.coins = document.querySelector("#hud-coins");
     this.hearts = document.querySelector("#hud-hearts");
     this.hero = document.querySelector("#hud-hero");
     this.pause = document.querySelector("#hud-pause");
+    if (level) this.title.textContent = `Nivel ${level.number} · ${level.name}`;
     this.hero.textContent = `Jugando: ${character === "bubu" ? "Bubu" : "Dudu"}`;
   }
 

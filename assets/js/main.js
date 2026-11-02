@@ -1,9 +1,16 @@
-import { getProgress, saveSelectedCharacter } from "/src/shared/progress.js";
+import {
+  getHighestUnlockedLevel,
+  getProgress,
+  saveSelectedCharacter,
+} from "/src/shared/progress.js";
 
 const cards = [...document.querySelectorAll(".character-card")];
 const message = document.querySelector("#character-selection");
 const playButton = document.querySelector("#play-button");
 let selectedCharacter = null;
+const continueLevel = getHighestUnlockedLevel();
+
+playButton.setAttribute("aria-label", `Jugar desde el nivel ${continueLevel}`);
 
 function selectCharacter(character) {
   selectedCharacter = character;
@@ -28,7 +35,7 @@ playButton.addEventListener("click", () => {
     return;
   }
 
-  window.location.assign("/levels/level_1.html?character=bubu");
+  window.location.assign(`/levels/level_1.html?character=bubu&level=${continueLevel}`);
 });
 
 document.querySelectorAll("[data-dialog]").forEach((button) => {
@@ -39,6 +46,9 @@ document.querySelectorAll(".dialog-close").forEach((button) => {
 });
 
 document.querySelector("#coin-balance").textContent = getProgress().coins;
-if (new URLSearchParams(window.location.search).get("notice") === "dudu") {
+const notice = new URLSearchParams(window.location.search).get("notice");
+if (notice === "dudu") {
   message.textContent = "Dudu estará disponible cuando sus animaciones oficiales estén listas.";
+} else if (notice === "locked") {
+  message.textContent = "Completa el nivel anterior para desbloquear este sendero.";
 }

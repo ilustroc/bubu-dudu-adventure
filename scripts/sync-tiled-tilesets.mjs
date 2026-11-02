@@ -3,9 +3,9 @@ import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const mapPath = resolve(projectRoot, "assets/maps/level_01.json");
-const mapDirectory = dirname(mapPath);
-const map = JSON.parse(readFileSync(mapPath, "utf8"));
+const mapPaths = [1, 2, 3, 4, 5].map((number) =>
+  resolve(projectRoot, `assets/maps/level_${String(number).padStart(2, "0")}.json`),
+);
 const canonicalNames = new Map([
   [1, "kenney_pixel_platformer"],
   [181, "forest-hills"],
@@ -29,9 +29,10 @@ const requiredNumber = (value, field, source) => {
   return number;
 };
 
-const relativeToMap = (path) => relative(mapDirectory, path).replaceAll("\\", "/");
+const relativeToMap = (mapDirectory, path) =>
+  relative(mapDirectory, path).replaceAll("\\", "/");
 
-const inlineTileset = (entry) => {
+const inlineTileset = (entry, mapDirectory) => {
   const { firstgid, source } = entry;
   if (!source) {
     const hasAtlasImage = typeof entry.image === "string" && entry.image;
@@ -64,7 +65,7 @@ const inlineTileset = (entry) => {
         throw new Error(`${source}: tile id inválido.`);
       return {
         id,
-        image: relativeToMap(resolve(dirname(tsxPath), image.source)),
+        image: relativeToMap(mapDirectory, resolve(dirname(tsxPath), image.source)),
         imageheight: requiredNumber(image.height, "tile image height", source),
         imagewidth: requiredNumber(image.width, "tile image width", source),
       };
@@ -92,7 +93,7 @@ const inlineTileset = (entry) => {
   return {
     firstgid,
     columns,
-    image: relativeToMap(imagePath),
+    image: relativeToMap(mapDirectory, imagePath),
     imageheight,
     imagewidth,
     margin: Number(tileset.margin ?? 0),
@@ -104,10 +105,16 @@ const inlineTileset = (entry) => {
   };
 };
 
-map.tilesets = map.tilesets.map(inlineTileset).sort((a, b) => a.firstgid - b.firstgid);
-writeFileSync(mapPath, `${JSON.stringify(map, null, 2)}\n`);
-console.log(
-  `Tilesets sincronizados: ${map.tilesets
-    .map(({ firstgid, name }) => `${firstgid}:${name}`)
-    .join(", ")}.`,
-);
+for (const mapPath of mapPaths) {
+  const mapDirectory = dirname(mapPath);
+  const map = JSON.parse(readFileSync(mapPath, "utf8"));
+  map.tilesets = map.tilesets
+    .map((entry) => inlineTileset(entry, mapDirectory))
+    .sort((a, b) => a.firstgid - b.firstgid);
+  writeFileSync(mapPath, `${JSON.stringify(map, null, 2)}\n`);
+  console.log(
+    `${mapPath.split(/[\\/]/).at(-1)}: ${map.tilesets
+      .map(({ firstgid, name }) => `${firstgid}:${name}`)
+      .join(", ")}.`,
+  );
+}
