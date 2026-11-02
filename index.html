@@ -3,115 +3,83 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#8ed9f4" />
+    <meta name="theme-color" content="#79d2ec" />
     <title>Bubu & Dudu | Al Rescate</title>
     <link rel="stylesheet" href="/assets/css/styles.css" />
   </head>
   <body class="menu-page">
-    <main class="menu-shell">
-      <div class="sky-layer" aria-hidden="true">
-        <span class="cloud cloud-one"></span
-        ><span class="cloud cloud-two"></span
-        ><span class="cloud cloud-three"></span>
-        <span class="mountain mountain-back"></span
-        ><span class="mountain mountain-front"></span>
-        <span class="forest forest-back"></span
-        ><span class="forest forest-front"></span>
+    <main class="menu-scene" aria-labelledby="game-title">
+      <div class="pixel-sky" aria-hidden="true">
+        <span class="cloud cloud-one"></span>
+        <span class="cloud cloud-two"></span>
+        <span class="cloud cloud-three"></span>
       </div>
-      <section class="menu-card" aria-labelledby="game-title">
+      <div class="forest-backdrop" aria-hidden="true"></div>
+      <div class="world-label" aria-hidden="true">✦ AVENTURA PIXEL ✦</div>
+      <p class="coin-balance" aria-label="Monedas acumuladas">
+        <span aria-hidden="true">✦</span>
+        <strong id="coin-balance">0</strong> MONEDAS
+      </p>
+
+      <section class="menu-content">
         <header class="menu-header">
-          <p class="eyebrow">Una aventura para dos ositos</p>
-          <h1 id="game-title">
-            Bubu <span>&amp;</span> Dudu <small>Al Rescate</small>
-          </h1>
-          <p class="intro">Bubu y Dudu han sido separados por una fuerza misteriosa. Elige a tu personaje, supera los desafíos y rescata a tu pareja.</p>
-          <p class="coin-balance" aria-label="Monedas acumuladas">
-            <span aria-hidden="true">✦</span>
-            <strong id="coin-balance">0</strong> monedas
-          </p>
+          <p class="eyebrow">UNA AVENTURA PARA DOS OSITOS</p>
+          <h1 id="game-title"><span>BUBU</span> <b>&amp;</b> <span>DUDU</span></h1>
+          <p class="rescue-sign">AL RESCATE</p>
+          <p class="intro">Dos ositos, un bosque mágico y una misión: volver a encontrarse.</p>
         </header>
-        <section class="character-picker" aria-label="Elige tu personaje">
-          <button
-            class="character-card"
-            type="button"
-            data-character="bubu"
-            aria-pressed="false"
-          >
-            <span class="card-sparkle">✦</span
-            ><span class="portrait"
-              ><img
-                src="/assets/characters/bubu/idle.png"
-                data-static-src="/assets/characters/bubu/idle.png"
-                alt="Bubu, oso panda blanco" /></span
-            ><span class="character-copy"
-              ><strong>Bubu</strong><small>Oso panda blanco</small></span
-            >
-          </button>
-          <button
-            class="character-card"
-            type="button"
-            data-character="dudu"
-            aria-pressed="false"
-            disabled
-          >
-            <span class="card-sparkle">✦</span
-            ><span class="portrait"
-              ><img
-                src="/assets/images/dudu.png"
-                data-static-src="/assets/images/dudu.png"
-                data-gif-src="/assets/images/dudu.gif"
-                alt="Dudu, oso marrón" /></span
-            ><span class="character-copy"
-              ><strong>Dudu</strong><small>Próximamente</small></span
-            >
-          </button>
-        </section>
-        <p
-          id="character-selection"
-          class="selection-message"
-          aria-live="polite"
-        >
-          Selecciona a Bubu o Dudu para comenzar.
-        </p>
-        <div class="menu-actions">
+
+        <div class="menu-actions" aria-label="Acciones principales">
           <button id="play-button" class="button button-play" type="button">
-            JUGAR <span aria-hidden="true">➜</span>
+            <span aria-hidden="true">✦</span> JUGAR <span aria-hidden="true">▶</span>
           </button>
           <div class="secondary-actions">
-            <button
-              class="button button-secondary"
-              type="button"
-              data-dialog="shop-dialog"
-            >
-              Tienda</button
-            ><button
-              class="button button-secondary"
-              type="button"
-              data-dialog="options-dialog"
-            >
-              Opciones
-            </button>
+            <button class="button button-secondary" type="button" data-dialog="shop-dialog">TIENDA</button>
+            <button class="button button-secondary" type="button" data-dialog="options-dialog">OPCIONES</button>
           </div>
         </div>
+
+        <section class="character-area" aria-labelledby="character-title">
+          <h2 id="character-title">ELIGE TU PERSONAJE</h2>
+          <div class="character-picker" aria-label="Elige tu personaje">
+            <button class="character-card" type="button" data-character="bubu" aria-pressed="false">
+              <span class="card-frame">
+                <img src="/assets/characters/bubu/idle.png" data-static-src="/assets/characters/bubu/idle.png" alt="Bubu, oso panda blanco" />
+              </span>
+              <span class="character-copy"><strong>BUBU</strong><small>Disponible</small></span>
+            </button>
+            <button class="character-card is-coming" type="button" data-character="dudu" aria-pressed="false" disabled>
+              <span class="card-frame">
+                <img src="/assets/images/dudu.png" data-static-src="/assets/images/dudu.png" data-gif-src="/assets/images/dudu.gif" alt="Dudu, oso marrón" />
+              </span>
+              <span class="character-copy"><strong>DUDU</strong><small>Próximamente</small></span>
+            </button>
+          </div>
+          <p id="character-selection" class="selection-message" aria-live="polite">Selecciona a Bubu para comenzar tu aventura.</p>
+        </section>
       </section>
+
+      <div class="meadow-stage" aria-hidden="true">
+        <img class="stage-tree stage-tree-left" src="/assets/biomas/pradera/decorations/individuales/arbol_frondoso_02.png" alt="" />
+        <img class="stage-tree stage-tree-right" src="/assets/biomas/pradera/decorations/individuales/arbol_frondoso_01.png" alt="" />
+        <img class="stage-shrub shrub-one" src="/assets/biomas/pradera/decorations/individuales/arbusto_flor_amarilla.png" alt="" />
+        <img class="stage-shrub shrub-two" src="/assets/biomas/pradera/decorations/individuales/arbusto_corazones.png" alt="" />
+        <div class="meadow-grass"></div>
+        <div class="meadow-dirt"></div>
+      </div>
     </main>
+
     <dialog id="shop-dialog" class="info-dialog">
-      <button class="dialog-close" type="button" aria-label="Cerrar">×</button
-      ><span class="dialog-icon">🧺</span>
+      <button class="dialog-close" type="button" aria-label="Cerrar">×</button>
+      <span class="dialog-icon" aria-hidden="true">🧺</span>
       <h2>La tienda abrirá pronto</h2>
-      <p>
-        Las monedas que consigas quedarán guardadas para ropa y accesorios en
-        una próxima aventura.
-      </p>
+      <p>Las monedas que consigas quedarán guardadas para ropa y accesorios en una próxima aventura.</p>
     </dialog>
     <dialog id="options-dialog" class="info-dialog">
-      <button class="dialog-close" type="button" aria-label="Cerrar">×</button
-      ><span class="dialog-icon">⚙️</span>
+      <button class="dialog-close" type="button" aria-label="Cerrar">×</button>
+      <span class="dialog-icon" aria-hidden="true">⚙️</span>
       <h2>Opciones</h2>
-      <p>
-        El juego se adapta a tu pantalla. En el nivel puedes pausar con
-        <kbd>Esc</kbd> y jugar con teclado o botones táctiles.
-      </p>
+      <p>El juego se adapta a tu pantalla. En el nivel puedes pausar con <kbd>Esc</kbd> y jugar con teclado o botones táctiles.</p>
     </dialog>
     <script type="module" src="/assets/js/main.js"></script>
   </body>
